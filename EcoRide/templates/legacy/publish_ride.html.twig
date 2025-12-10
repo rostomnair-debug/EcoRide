@@ -1,0 +1,166 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Publier un trajet{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h3 fw-bold mb-1">Publier un nouveau trajet</h1>
+        <p class="mb-0">Partagez votre prochain déplacement pour trouver des passagers en quelques clics.</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="surface-card p-4 p-md-5">
+                <form action="{{ path('legacy_publish_ride') }}" method="post" class="confirm-form" data-confirm="Publier ce trajet maintenant ?">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('publish_ride') }}">
+                    <fieldset class="mb-4">
+                        <legend class="h5 text-success">Informations principales</legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="departureCity" class="form-label">Ville de départ</label>
+                                <input type="text" class="form-control" id="departureCity" name="departureCity" placeholder="ex : Paris" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="arrivalCity" class="form-label">Ville d'arrivée</label>
+                                <input type="text" class="form-control" id="arrivalCity" name="arrivalCity" placeholder="ex : Lyon" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="departureDate" class="form-label">Date de départ</label>
+                                <input type="date" class="form-control" id="departureDate" name="departureDate" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="departureTime" class="form-label">Heure de départ</label>
+                                <input type="time" class="form-control" id="departureTime" name="departureTime" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="arrivalTime" class="form-label">Heure estimée d'arrivée</label>
+                                <input type="time" class="form-control" id="arrivalTime" name="arrivalTime">
+                            </div>
+                            <div class="col-12">
+                                <label for="pickupPoint" class="form-label">Point de rendez-vous</label>
+                                <input type="text" class="form-control" id="pickupPoint" name="pickupPoint" placeholder="Gare Montparnasse, sortie 3">
+                            </div>
+                            <div class="col-12">
+                                <label for="dropPoint" class="form-label">Point d'arrivée</label>
+                                <input type="text" class="form-control" id="dropPoint" name="dropPoint" placeholder="Centre-ville de Lyon, Place Bellecour">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="mb-4">
+                        <legend class="h5 text-success">Détails du trajet</legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="availableSeats" class="form-label">Places disponibles</label>
+                                <input type="number" class="form-control" id="availableSeats" name="availableSeats" min="1" max="6" value="3" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="pricePerSeat" class="form-label">Prix par place (crédits)</label>
+                                <input type="number" class="form-control" id="pricePerSeat" name="pricePerSeat" min="1" step="0.5" value="15" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="vehicleSelect" class="form-label">Véhicule utilisé</label>
+                                <select class="form-select" id="vehicleSelect" name="vehicleSelect" required>
+                                    <option value="" selected disabled>Sélectionnez un véhicule</option>
+                                    {% for car in cars %}
+                                        <option value="{{ car.id }}">{{ car.marque.libelle }} {{ car.modele }} · {{ car.immatriculation }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="stops" class="form-label">Étapes ou arrêts prévus</label>
+                                <input type="text" class="form-control" id="stops" name="stops" placeholder="Orléans, Dijon">
+                            </div>
+                            <div class="col-12">
+                                <label for="tripDescription" class="form-label">Informations complémentaires</label>
+                                <textarea class="form-control" id="tripDescription" name="tripDescription" rows="4" placeholder="Précisez vos conditions, horaire flexible, possibilité de déposer à l'aéroport..."></textarea>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="mb-4">
+                        <legend class="h5 text-success">Conditions de voyage</legend>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label" for="smokingRule">Fumeurs</label>
+                                <select class="form-select" id="smokingRule" name="smokingRule">
+                                    <option value="non">Non autorisés</option>
+                                    <option value="pause">Pause pour fumer possible</option>
+                                    <option value="oui">Autorisé à bord</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="animalsRule">Animaux</label>
+                                <select class="form-select" id="animalsRule" name="animalsRule">
+                                    <option value="non">Non autorisés</option>
+                                    <option value="petits">Animaux de petite taille en caisse</option>
+                                    <option value="oui">Autorisé à bord</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="luggageRule">Bagages</label>
+                                <select class="form-select" id="luggageRule" name="luggageRule">
+                                    <option value="leger">Sac à dos uniquement</option>
+                                    <option value="cabine">Type valise cabine</option>
+                                    <option value="soute">Type bagage soute</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/mon-espace-chauffeur" class="btn btn-outline-success">Annuler</a>
+                        <button type="button" class="btn btn-success trigger-confirm">Publier le trajet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% block legacy_scripts %}
+    {{ parent() }}
+    <div class="modal fade" id="confirmPublishModal" tabindex="-1" aria-labelledby="confirmPublishLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmPublishLabel">Confirmer la publication</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body" id="confirmPublishBody">
+                    Êtes-vous sûr de vouloir publier ce trajet ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" id="confirmPublishSubmit">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const modalEl = document.getElementById('confirmPublishModal');
+            if (!modalEl) return;
+            const bodyEl = document.getElementById('confirmPublishBody');
+            const confirmBtn = document.getElementById('confirmPublishSubmit');
+            let pendingForm = null;
+            modalEl.addEventListener('hidden.bs.modal', () => { pendingForm = null; });
+
+            document.querySelectorAll('.confirm-form').forEach(form => {
+                const btn = form.querySelector('.trigger-confirm');
+                if (!btn) return;
+                btn.addEventListener('click', () => {
+                    pendingForm = form;
+                    bodyEl.textContent = form.dataset.confirm || 'Confirmer cette action ?';
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                });
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                if (pendingForm) {
+                    pendingForm.submit();
+                }
+            });
+        })();
+    </script>
+{% endblock %}
+{% endblock %}

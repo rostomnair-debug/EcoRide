@@ -1,0 +1,467 @@
+    {% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Mon espace{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Bonjour {{ user.pseudo ?? user.prenom }} 👋</h1>
+                <p class="mb-1">Profil {{ user.voitures|length > 0 ? 'passager / chauffeur' : 'passager' }} · Gérez vos informations et véhicules.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="pill d-inline-flex align-items-center gap-2"><i class="bi bi-shield-check"></i> Connecté</span>
+                {% if user.verifie %}
+                    <span class="pill d-inline-flex align-items-center gap-2 bg-success text-white border-0"><i class="bi bi-patch-check-fill"></i> Vérifié</span>
+                {% else %}
+                    <span class="pill d-inline-flex align-items-center gap-2 bg-light text-danger border"><i class="bi bi-shield-exclamation"></i> Non vérifié</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="surface-card p-4 p-md-5">
+                {% set activeTab = activeTab is defined ? activeTab : 'infos' %}
+                <ul class="nav nav-tabs" id="mySpaceTabs" role="tablist" data-active-tab="{{ activeTab }}">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if activeTab == 'infos' %}active{% endif %}" id="infos-tab" data-bs-toggle="tab" data-bs-target="#infos" type="button" role="tab" aria-controls="infos" aria-selected="{{ activeTab == 'infos' ? 'true' : 'false' }}">Profil</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if activeTab == 'cars' %}active{% endif %}" id="cars-tab" data-bs-toggle="tab" data-bs-target="#cars" type="button" role="tab" aria-controls="cars" aria-selected="{{ activeTab == 'cars' ? 'true' : 'false' }}">Véhicules</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if activeTab == 'trips' %}active{% endif %}" id="trips-tab" data-bs-toggle="tab" data-bs-target="#trips" type="button" role="tab" aria-controls="trips" aria-selected="{{ activeTab == 'trips' ? 'true' : 'false' }}">Mes trajets</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content pt-4" id="mySpaceTabsContent">
+                    <div class="tab-pane fade {% if activeTab == 'infos' %}show active{% endif %}" id="infos" role="tabpanel" aria-labelledby="infos-tab">
+                        <div class="row g-4">
+                            <div class="col-md-4 text-center">
+                                <div class="position-relative d-inline-block">
+                                    {% if user.photo %}
+                                        <img src="{{ asset(user.photo) }}" alt="Photo de profil" class="rounded-circle shadow-soft" style="width:140px;height:140px;object-fit:cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-soft" style="width:140px;height:140px;font-size:48px;color:var(--green-700);">
+                                            <i class="bi bi-person-circle"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <p class="mt-3 mb-0 fw-semibold">{{ user.pseudo ?? user.email }}</p>
+                                <small class="text-muted d-block mb-2">{{ user.voitures|length > 0 ? 'Passager / Chauffeur' : 'Passager' }}</small>
+                                {% if profileAvg is defined and profileAvg > 0 %}
+                                    <span class="ms-2 text-warning fw-semibold">⭐ {{ profileAvg|number_format(1, ',', ' ') }}/5 </span>
+                                {% else %}
+                                    <span class="ms-2 text-muted">Aucune note pour l'instant </span>
+                                {% endif %}
+                                {% if user.verifie %}
+                                    <span class="badge bg-success"><i class="bi bi-patch-check-fill me-1"></i>Vérifié</span>
+                                {% else %}
+                                    <span class="badge bg-light text-danger border">Non vérifié</span>
+                                {% endif %}
+                                
+                                <div class="mt-3 d-flex flex-column align-items-center gap-2">
+                                    <span class="badge-soft d-inline-flex align-items-center gap-2 js-credit-display" data-credit-base="{{ user.credit }}">
+                                        <span class="js-credit-value">{{ user.credit }}</span> 🪙
+                                        <button type="button" class="btn btn-outline-success btn-sm rounded-circle credit-topup-btn fw-bold open-topup" data-bs-toggle="modal" data-bs-target="#topupModal" title="Recharger mes crédits">
+                                            +
+                                        </button>
+                                    </span>
+                                    <small class="text-muted">Recharger vos crédits (1 crédit = 2 €)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <form class="row g-3 confirm-form" method="post" action="{{ path('legacy_my_space') }}" enctype="multipart/form-data" data-confirm="Confirmer la mise à jour de votre profil ?">
+                                    <input type="hidden" name="profile_form" value="1">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_form') }}">
+                                    <div class="col-md-6">
+                                        <label for="inputPrenom" class="form-label">Prénom</label>
+                                        <input type="text" class="form-control" id="inputPrenom" name="prenom" value="{{ user.prenom }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputNom" class="form-label">Nom</label>
+                                        <input type="text" class="form-control" id="inputNom" name="nom" value="{{ user.nom }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputPseudo" class="form-label">Pseudo</label>
+                                        <input type="text" class="form-control" id="inputPseudo" name="pseudo" value="{{ user.pseudo }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputEmail" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="inputEmail" name="email" value="{{ user.email }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputTelephone" class="form-label">Téléphone</label>
+                                        <input type="tel" class="form-control" id="inputTelephone" name="telephone" value="{{ user.telephone }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputAdresse" class="form-label">Adresse postale</label>
+                                        <input type="text" class="form-control" id="inputAdresse" name="adresse" value="{{ user.adresse }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputDateNaissance" class="form-label">Date de naissance</label>
+                                        <input type="date" class="form-control" id="inputDateNaissance" name="date_naissance" value="{{ user.dateNaissance ? user.dateNaissance|date('Y-m-d') : '' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputPassword" class="form-label">Nouveau mot de passe</label>
+                                        <input type="password" class="form-control" id="inputPassword" name="new_password" placeholder="Laisser vide pour ne pas changer">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="inputPasswordConfirm" class="form-label">Confirmation mot de passe</label>
+                                        <input type="password" class="form-control" id="inputPasswordConfirm" name="new_password_confirm" placeholder="Laisser vide pour ne pas changer">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="inputPhoto" class="form-label">Photo de profil</label>
+                                        <input type="file" class="form-control" id="inputPhoto" name="photo" accept="image/*">
+                                        <small class="text-muted">Formats images, max 5Mo conseillés.</small>
+                                    </div>
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button type="button" class="btn btn-success trigger-confirm">Mettre à jour</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade {% if activeTab == 'cars' %}show active{% endif %}" id="cars" role="tabpanel" aria-labelledby="cars-tab">
+                        <div class="row g-4">
+                            <div class="col-md-5">
+                                <div class="surface-soft p-3 h-100">
+                                    <h5 class="fw-bold mb-3">Ajouter un véhicule</h5>
+                                    <form method="post" action="{{ path('legacy_my_space') }}" class="confirm-form" data-confirm="Confirmer l'enregistrement de ce véhicule ?">
+                                        <input type="hidden" name="car_form" value="1">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('car_form') }}">
+                                        <div class="mb-3">
+                                            <label class="form-label" for="carMarque">Marque</label>
+                                            <input type="text" class="form-control" id="carMarque" name="marque" placeholder="Renault" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="carModele">Modèle</label>
+                                            <input type="text" class="form-control" id="carModele" name="modele" placeholder="Zoé" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="carImmat">Immatriculation</label>
+                                            <input type="text" class="form-control" id="carImmat" name="immatriculation" placeholder="AA-123-AA" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="carEnergie">Énergie</label>
+                                            <select id="carEnergie" name="energie" class="form-select" required>
+                                                <option value="">Sélectionner</option>
+                                                <option value="electrique">Électrique</option>
+                                                <option value="hybride">Hybride</option>
+                                                <option value="essence">Essence</option>
+                                                <option value="diesel">Diesel</option>
+                                                <option value="gpl">GPL</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="carCouleur">Couleur</label>
+                                            <input type="text" class="form-control" id="carCouleur" name="couleur" placeholder="Blanc" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="carDate">Première immatriculation</label>
+                                            <input type="date" class="form-control" id="carDate" name="datePremiereImmatriculation" required>
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="button" class="btn btn-success trigger-confirm">Enregistrer le véhicule</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <h5 class="fw-bold mb-3">Vos véhicules</h5>
+                                {% if user.voitures is empty %}
+                                    <div class="card-quiet">Aucun véhicule enregistré pour le moment.</div>
+                                {% else %}
+                                    <div class="row g-3">
+                                        {% for voiture in user.voitures %}
+                                            <div class="col-md-12">
+                                                <div class="card trip-card p-3">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div>
+                                                            <div class="fw-bold">{{ voiture.marque.libelle }} {{ voiture.modele }}</div>
+                                                            <div class="text-muted small">{{ voiture.immatriculation }} · {{ voiture.energie|capitalize }} · {{ voiture.couleur }}</div>
+                                                            <div class="text-muted small">Première immatriculation : {{ voiture.datePremiereImmatriculation }}</div>
+                                                        </div>
+                                                        <span class="badge-soft">Passager / Chauffeur</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade {% if activeTab == 'trips' %}show active{% endif %}" id="trips" role="tabpanel" aria-labelledby="trips-tab">
+                        {% set sections = {
+                            'À venir': {'items': tripsFuture, 'color': 'success', 'icon': 'bi bi-clock-history'},
+                            'En cours': {'items': tripsOngoing, 'color': 'primary', 'icon': 'bi bi-play-circle'},
+                            'Passés': {'items': tripsPast, 'color': 'secondary', 'icon': 'bi bi-flag'}
+                        } %}
+                        {% for label, data in sections %}
+                            <div class="surface-card p-3 mb-3">
+                                <button class="btn btn-link w-100 d-flex justify-content-between align-items-center text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#trips-{{ loop.index }}" aria-expanded="false">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-{{ data.color }} text-white"><i class="{{ data.icon }}"></i></span>
+                                        <span class="fw-bold text-{{ data.color }}">{{ label }}</span>
+                                        <i class="bi bi-chevron-compact-down text-{{ data.color }}"></i>
+                                    </span>
+                                </button>
+                                <div class="collapse" id="trips-{{ loop.index }}">
+                                    {% if data.items is empty %}
+                                        <div class="card-quiet text-muted small mt-2">Aucun trajet {{ label|lower }}.</div>
+                                    {% else %}
+                                        <div class="row g-3 mt-2">
+                                            {% for trajet in data.items %}
+                                                {% set isDriver = trajet.voiture.proprietaire.id == user.id %}
+                                                {% set statutLabel = label == 'À venir' ? 'À venir' : trajet.statut|capitalize %}
+                                                {% set collapseId = 'trip-card-' ~ loop.parent.loop.index ~ '-' ~ loop.index0 %}
+                                                {% set userHasRated = false %}
+                                                {% set userRateNote = null %}
+                                                {% set userRateComment = null %}
+                                                {% for av in trajet.avis %}
+                                                    {% if av.utilisateur and av.utilisateur.id == user.id %}
+                                                        {% set userHasRated = true %}
+                                                        {% set userRateNote = av.note %}
+                                                        {% set userRateComment = av.commentaire %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <div class="col-12">
+                                                    <div class="border rounded shadow-sm p-3 h-100">
+                                                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                            <div>
+                                                                <div class="fw-bold {{ label == 'À venir' ? 'text-success' : '' }}">
+                                                                    {{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}
+                                                                </div>
+                                                                <div class="fw-semibold">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</div>
+                                                                <div class="text-muted small">{{ isDriver ? 'Chauffeur' : 'Passager' }}</div>
+                                                                {% if trajet.createdAt %}
+                                                                    <div class="text-muted small">Publié le {{ trajet.createdAt|date('d/m/Y') }}</div>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="d-flex flex-column align-items-end gap-1">
+                                                                <span class="badge bg-{{ label == 'À venir' ? 'success text-white' : 'light text-success' }}">{{ statutLabel }}</span>
+                                                                <span class="badge-soft">{{ trajet.prixPersonne|number_format(0, '', ' ') }} 🪙</span>
+                                                                <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 toggle-details" type="button" data-bs-toggle="collapse" data-bs-target="#{{ collapseId }}" aria-expanded="false">
+                                                                    <span class="toggle-label">Afficher</span><i class="bi bi-chevron-compact-down"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="collapse mt-3" id="{{ collapseId }}">
+                                                            <div class="d-flex flex-column gap-2">
+                                                                <a class="btn btn-outline-success btn-sm" href="{{ path('legacy_covoiturage_detail', { slug: trajet.slug }) }}">Voir le trajet</a>
+                                                                {% if trajet.statut == 'terminé' and not isDriver %}
+                                                                    {% if userHasRated %}
+                                                                        <div class="alert alert-success p-2 mb-0">
+                                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                                <span class="fw-semibold">Avis déjà laissé</span>
+                                                                        <span class="badge bg-light text-success">⭐ {{ userRateNote }}/5</span>
+                                                                    </div>
+                                                                            {% if userRateComment %}
+                                                                                <div class="text-muted small mt-1">{{ userRateComment }}</div>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% else %}
+                                                                        <form method="post" action="{{ path('legacy_covoiturage_avis', { slug: trajet.slug }) }}" class="d-flex flex-wrap align-items-center gap-2">
+                                                                            <label class="small mb-0 text-muted">Note</label>
+                                                                            <select name="note" class="form-select form-select-sm" style="width:80px" required>
+                                                                                <option value="">-</option>
+                                                                                {% for i in 1..5 %}
+                                                                                    <option value="{{ i }}">{{ i }}/5</option>
+                                                                                {% endfor %}
+                                                                            </select>
+                                                                            <input type="text" name="commentaire" class="form-control form-control-sm flex-grow-1" placeholder="Commentaire (optionnel)">
+                                                                            <button class="btn btn-success btn-sm" type="submit">Évaluer</button>
+                                                                        </form>
+                                                                    {% endif %}
+                                                                {% endif %}
+                                                                <form method="post" action="{{ path('legacy_covoiturage_signal', { slug: trajet.slug }) }}" class="d-flex flex-wrap align-items-center gap-2">
+                                                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('signal_' ~ trajet.slug) }}">
+                                                                    <input type="text" name="motif" class="form-control form-control-sm flex-grow-1" placeholder="Motif (optionnel)">
+                                                                    <button class="btn btn-outline-danger btn-sm" type="submit">Signaler</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% block legacy_scripts %}
+    {{ parent() }}
+    <script>
+        (function() {
+            document.querySelectorAll('.toggle-details').forEach(btn => {
+                const label = btn.querySelector('.toggle-label');
+                if (!label) return;
+                const targetId = btn.getAttribute('data-bs-target')?.replace('#', '');
+                if (!targetId) return;
+                const target = document.getElementById(targetId);
+                if (!target) return;
+                const update = () => {
+                    const expanded = target.classList.contains('show');
+                    label.textContent = expanded ? 'Masquer' : 'Afficher';
+                };
+                target.addEventListener('shown.bs.collapse', update);
+                target.addEventListener('hidden.bs.collapse', update);
+                btn.addEventListener('click', update);
+                update();
+            });
+        })();
+    </script>
+    {% if pendingEvalTrip %}
+        <div class="modal fade" id="evalPendingModal" tabindex="-1" aria-labelledby="evalPendingLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="evalPendingLabel">Évaluez votre trajet</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Merci d'avoir voyagé avec EcoRide.</p>
+                        <p><strong>Trajet :</strong> {{ pendingEvalTrip.lieuDepart }} → {{ pendingEvalTrip.lieuArrivee }} (réf : {{ pendingEvalTrip.slug }})</p>
+                        <form method="post" action="{{ path('legacy_covoiturage_avis', { slug: pendingEvalTrip.slug }) }}" class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label" for="pendingNote">Note</label>
+                                <select name="note" id="pendingNote" class="form-select" required>
+                                    <option value="">Sélectionnez</option>
+                                    {% for i in 1..5 %}
+                                        <option value="{{ i }}">{{ i }}/5</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="pendingComment">Commentaire</label>
+                                <textarea name="commentaire" id="pendingComment" class="form-control" rows="2" placeholder="Votre retour (optionnel)"></textarea>
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <button class="btn btn-success" type="submit">Envoyer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function() {
+                const modalEl = document.getElementById('evalPendingModal');
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            })();
+        </script>
+    {% endif %}
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmActionLabel">Confirmer l'action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body" id="confirmActionBody">
+                    Êtes-vous sûr de vouloir continuer ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" id="confirmActionSubmit">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const modalEl = document.getElementById('confirmActionModal');
+            if (!modalEl) return;
+            const bodyEl = document.getElementById('confirmActionBody');
+            const confirmBtn = document.getElementById('confirmActionSubmit');
+            let pendingForm = null;
+            modalEl.addEventListener('hidden.bs.modal', () => { pendingForm = null; });
+
+            document.querySelectorAll('.confirm-form').forEach(form => {
+                const btn = form.querySelector('.trigger-confirm');
+                if (!btn) return;
+                btn.addEventListener('click', () => {
+                    pendingForm = form;
+                    bodyEl.textContent = form.dataset.confirm || 'Confirmer cette action ?';
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                });
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                if (pendingForm) {
+                    pendingForm.submit();
+                }
+            });
+        })();
+
+        // Activer le bon onglet via ?tab=infos|cars|trips
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            let targetTab = params.get('tab');
+            if (!targetTab && window.location.hash) {
+                const h = window.location.hash.replace('#', '');
+                if (['infos','cars','trips'].includes(h)) {
+                    targetTab = h;
+                }
+            }
+            if (!targetTab) return;
+            const trigger = document.querySelector(`#mySpaceTabs button[data-bs-target="#${targetTab}"]`);
+            if (trigger) {
+                new bootstrap.Tab(trigger).show();
+            }
+        })();
+
+        // Forcer l'activation du tab passé par le contrôleur (data-active-tab)
+        (function() {
+            const nav = document.getElementById('mySpaceTabs');
+            if (!nav) return;
+            const active = nav.dataset.activeTab;
+            if (!active) return;
+            const trigger = nav.querySelector(`button[data-bs-target="#${active}"]`);
+            if (trigger) {
+                new bootstrap.Tab(trigger).show();
+            }
+        })();
+
+        // Afficher un flash côté client si stocké (cas redirection publier sans voiture)
+        (function() {
+            const msg = localStorage.getItem('flashPublishCar');
+            if (!msg) return;
+            localStorage.removeItem('flashPublishCar');
+            const container = document.createElement('div');
+            container.className = 'alert alert-info alert-dismissible fade show';
+            container.role = 'alert';
+            container.innerHTML = `
+                ${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            `;
+            const target = document.querySelector('.page-hero') || document.body;
+            target.insertAdjacentElement('afterend', container);
+        })();
+    </script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title>Avatar utilisateur</title>
+  <desc>Avatar générique pour profil EcoRide</desc>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2fb36c"/>
+      <stop offset="100%" stop-color="#155636"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#grad)"/>
+  <circle cx="64" cy="50" r="26" fill="#e8f5ec" opacity="0.9"/>
+  <path d="M28 112c4-22 22-32 36-32s32 10 36 32" fill="#e8f5ec" opacity="0.9"/>
+</svg>

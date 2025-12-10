@@ -1,0 +1,50 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Ajouter un employé{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h4 fw-bold mb-1">Nouvel employé</h1>
+        <p class="mb-0 text-muted">Créez un compte employé avec les informations de base.</p>
+    </div>
+
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="surface-card p-4">
+        <form class="row g-3" method="post" action="{{ path('legacy_admin_add_employee') }}">
+            <div class="col-md-6">
+                <label class="form-label" for="nom">Nom</label>
+                <input class="form-control" type="text" id="nom" name="nom" placeholder="Nom" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="prenom">Prénom</label>
+                <input class="form-control" type="text" id="prenom" name="prenom" placeholder="Prénom" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="pseudo">Pseudo</label>
+                <input class="form-control" type="text" id="pseudo" name="pseudo" placeholder="Identifiant affiché" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-control" type="email" id="email" name="email" placeholder="email@ecoride.fr" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="password">Mot de passe initial</label>
+                <input class="form-control" type="password" id="password" name="password" placeholder="Laisser vide pour Employe123$">
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                <a class="btn btn-outline-secondary" href="{{ path('legacy_admin_dashboard', {'tab': 'employees'}) }}">Annuler</a>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('add_employee') }}">
+                <button class="btn btn-success" type="submit">Créer l'employé</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Accueil{% endblock %}
+
+{% block legacy_body %}
+<section class="hero-landing" style="--hero-bg: url('{{ asset('img/trees-7358969_640.jpg') }}');">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <p class="eyebrow mb-2">Mobilité partagée · Impact positif</p>
+                <h1 class="display-5 fw-bold mb-3">Voyagez plus vert avec <span class="text-warning">EcoRide</span></h1>
+                <p class="lead mb-4">Trouvez ou proposez un covoiturage écologique et économique en quelques clics.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a class="btn btn-success btn-lg" href="{{ path('legacy_covoiturages') }}">Explorer les trajets</a>
+                    <a class="btn btn-outline-light btn-lg" href="{{ path('legacy_publish_ride') }}">Publier un trajet</a>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <span class="pill">Assurance incluse</span>
+                    <span class="pill">Conducteurs vérifiés</span>
+                    <span class="pill">Moins d'émissions CO₂</span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="surface-card p-4 shadow-soft bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Rechercher un covoiturage</h5>
+                        <span class="badge-soft">Nouveau</span>
+                    </div>
+                    <form class="row g-3" method="get" action="{{ path('legacy_covoiturages') }}">
+                        {% set villes = [
+                            'Paris','Marseille','Lyon','Toulouse','Nice','Nantes','Montpellier','Strasbourg','Bordeaux','Lille',
+                            'Rennes','Reims','Toulon','Saint-Étienne','Le Havre','Grenoble','Dijon','Angers','Nîmes','Villeurbanne'
+                        ] %}
+                        <div class="col-md-6">
+                            <label for="depart" class="form-label">Départ</label>
+                            <select id="depart" name="depart" class="form-select" size="1">
+                                <option value="" selected disabled>Sélectionnez une ville</option>
+                                {% for ville in villes %}
+                                    <option>{{ ville }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="arrivee" class="form-label">Arrivée</label>
+                            <select id="arrivee" name="arrivee" class="form-select" size="1">
+                                <option value="" selected disabled>Sélectionnez une ville</option>
+                                {% for ville in villes %}
+                                    <option>{{ ville }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" id="date" name="date" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filtrePrix" class="form-label">Prix maximum (crédits)</label>
+                            <input type="number" id="filtrePrix" name="prixMax" class="form-control" placeholder="Ex : 20">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filtreDuree" class="form-label">Durée max (h)</label>
+                            <input type="number" id="filtreDuree" name="dureeMax" class="form-control" placeholder="Ex : 5 heures">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filtreSeats" class="form-label">Places min.</label>
+                            <input type="number" id="filtreSeats" class="form-control" placeholder="Ex : 2">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="ecoHome" name="eco" value="1">
+                                <label class="form-check-label" for="ecoHome">Trajet écologique (électrique ou hybride)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end justify-content-end gap-2">
+                            <button type="reset" class="btn btn-outline-success">Réinitialiser</button>
+                            <button type="submit" id="search-button" class="btn btn-success">Rechercher</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container pb-4">
+    <div class="surface-soft p-4 p-md-5 mb-5">
+        <div class="row g-4 align-items-center">
+            <div class="col-md-6">
+                <span class="chip mb-3"><i class="bi bi-leaf"></i> Mobilité responsable</span>
+                <h2 class="fw-bold mb-3">Partagez vos trajets, réduisez vos coûts</h2>
+                <p class="text-muted mb-3">EcoRide propose des covoiturages économiques et écologiques pour voyager sereinement et réduire votre empreinte carbone.</p>
+                <ul class="list-check">
+                    <li>Réduction des coûts de déplacement</li>
+                    <li>Diminution immédiate des émissions de CO₂</li>
+                    <li>Rencontres conviviales et communauté vérifiée</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <div class="surface-card p-4 h-100">
+                    <h5 class="text-success fw-bold mb-4 text-center">Comment ça marche ?</h5>
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <span class="step-circle">1</span>
+                        <div>
+                            <h6 class="mb-1">Choisissez votre trajet</h6>
+                            <small class="text-muted">Départ, arrivée, date et préférences.</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <span class="step-circle">2</span>
+                        <div>
+                            <h6 class="mb-1">Réservez en toute sécurité</h6>
+                            <small class="text-muted">Paiement sécurisé et conditions transparentes.</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <span class="step-circle">3</span>
+                        <div>
+                            <h6 class="mb-1">Voyagez écologique</h6>
+                            <small class="text-muted">Partagez le trajet, réduisez votre empreinte carbone.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="surface-card p-4 p-md-5 mb-5">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+            <div class="section-heading">
+                <span class="chip mb-2"><i class="bi bi-compass"></i> Prochains départs</span>
+                <h2 class="fw-bold mb-2">Trajets à venir</h2>
+                <p class="text-muted mb-0">Des conducteurs engagés, des véhicules économiques et un prix clair avant de réserver.</p>
+            </div>
+            <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Voir tous les trajets</a>
+        </div>
+        {% if covoiturages is empty %}
+            <div class="card-quiet text-center">
+                <p class="mb-1 fw-semibold text-success">Aucun covoiturage pour le moment.</p>
+                <p class="text-muted mb-0">Publiez un trajet et devenez le premier à voyager plus vert.</p>
+            </div>
+        {% else %}
+            <div class="row g-4">
+                {% for trajet in covoiturages %}
+                    <div class="col-md-4">
+                        <div class="card trip-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge-soft">{{ trajet.nbPlace }} place(s)</span>
+                                    <span class="price">{{ trajet.prixPersonne|number_format(0, '', ' ') }} 🪙</span>
+                                </div>
+                                <h5 class="card-title">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</h5>
+                                <p class="mb-1 text-muted">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+                                <p class="mb-1">Conducteur : {{ trajet.voiture.proprietaire.prenom }} {{ trajet.voiture.proprietaire.nom }}</p>
+                                <p class="mb-1 text-muted">Véhicule : {{ trajet.voiture.marque.libelle }} {{ trajet.voiture.modele }} ({{ trajet.voiture.energie }})</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-light text-success text-uppercase">{{ trajet.statut|capitalize }}</span>
+                                    <a class="btn btn-outline-success btn-sm" href="{{ path('legacy_covoiturage_detail', { slug: trajet.slug }) }}">Détails</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="surface-card p-4 p-md-5">
+        <div class="section-heading text-center mx-auto mb-4">
+            <span class="chip mb-2"><i class="bi bi-chat-square-quote"></i> Témoignages</span>
+            <h2 class="fw-bold mb-2">Avis des utilisateurs</h2>
+            <p class="text-muted mb-0">Une communauté qui partage les mêmes valeurs et le même plaisir de voyager léger.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card p-4 h-100">
+                    <p class="mb-3">« EcoRide m'a permis de réduire mes dépenses de transport tout en faisant des rencontres géniales. Je recommande ! »</p>
+                    <p class="text-muted mb-0 fw-semibold">Chloé — Paris</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card p-4 h-100">
+                    <p class="mb-3">« Conduire moins seul, c'est plus agréable et plus écologique. EcoRide facilite vraiment l'organisation. »</p>
+                    <p class="text-muted mb-0 fw-semibold">Antoine — Lyon</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card p-4 h-100">
+                    <p class="mb-3">« Interface claire, conducteurs fiables, et tarif avantageux. Très satisfaite du service. »</p>
+                    <p class="text-muted mb-0 fw-semibold">Sarah — Bordeaux</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

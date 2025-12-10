@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="title desc">
+  <title id="title">Équipe EcoRide au bureau</title>
+  <desc id="desc">Illustration d'un groupe de collaborateurs heureux travaillant au bureau sur la plateforme EcoRide</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7f9fd" />
+      <stop offset="100%" stop-color="#dfe8f7" />
+    </linearGradient>
+    <linearGradient id="board" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#eff4fb" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)" />
+  <g opacity="0.18" fill="#7ba3e6">
+    <circle cx="140" cy="120" r="90" />
+    <circle cx="660" cy="140" r="120" />
+    <circle cx="380" cy="360" r="110" />
+  </g>
+  <rect x="180" y="96" width="440" height="220" rx="26" fill="url(#board)" stroke="#aac2ea" stroke-width="6" />
+  <text x="220" y="150" font-family="'Poppins','Segoe UI',sans-serif" font-size="24" font-weight="600" fill="#1d8b49">Tableau de bord EcoRide</text>
+  <path d="M220 180c60 0 90-40 150-40s90 40 150 40" fill="none" stroke="#1d8b49" stroke-width="10" stroke-linecap="round" stroke-dasharray="32 18" />
+  <g fill="#1d8b49">
+    <circle cx="220" cy="180" r="10" />
+    <circle cx="370" cy="140" r="10" />
+    <circle cx="520" cy="180" r="10" />
+  </g>
+  <g fill="#ffffff" stroke="#1d8b49" stroke-width="4" stroke-linecap="round">
+    <rect x="220" y="200" width="360" height="80" rx="16" />
+    <path d="M240 240h80" />
+    <path d="M340 240h120" />
+    <path d="M480 240h60" />
+  </g>
+  <g transform="translate(100 250)">
+    <g fill="#f5c6a5" stroke="#2d3e5b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M30 120c20-24 44-30 74-18" />
+      <path d="M58 0c34 6 54 30 50 62-4 26-22 42-50 42-34 0-58-32-54-62 3-22 21-40 54-42z" fill="#ffe5d2" stroke="none" />
+      <path d="M58 0c34 6 54 30 50 62-4 26-22 42-50 42-34 0-58-32-54-62 3-22 21-40 54-42z" />
+      <path d="M46 46c10 8 18 8 30 0" />
+    </g>
+    <path d="M-10 160h140c8 0 14-6 14-14v-18c0-28-22-50-50-50H40c-28 0-50 22-50 50v18c0 8 6 14 14 14z" fill="#1d8b49" />
+  </g>
+  <g transform="translate(310 240)">
+    <g fill="#f6c9aa" stroke="#1f584a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M36 126c22-26 50-32 80-14" />
+      <path d="M60 0c38 8 58 36 54 70-4 26-22 42-54 42-38 0-62-32-58-64 3-22 24-44 58-48z" fill="#ffe6d6" stroke="none" />
+      <path d="M60 0c38 8 58 36 54 70-4 26-22 42-54 42-38 0-62-32-58-64 3-22 24-44 58-48z" />
+      <path d="M48 42c12 8 20 8 32 0" />
+    </g>
+    <path d="M-6 170h160c8 0 14-6 14-14v-24c0-34-26-60-60-60H68c-34 0-60 26-60 60v24c0 8 6 14 14 14z" fill="#2f8a4d" />
+  </g>
+  <g transform="translate(520 250)">
+    <g fill="#f6ceb8" stroke="#2f4a7a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M42 122c22-26 48-32 76-16" />
+      <path d="M64 0c34 10 54 38 50 70-4 26-22 40-50 40-34 0-58-32-54-62 3-22 22-44 54-48z" fill="#ffe3d3" stroke="none" />
+      <path d="M64 0c34 10 54 38 50 70-4 26-22 40-50 40-34 0-58-32-54-62 3-22 22-44 54-48z" />
+      <path d="M52 40c12 8 20 8 32 0" />
+    </g>
+    <path d="M-2 164h150c8 0 14-6 14-14v-20c0-32-24-58-56-58H72c-32 0-56 26-56 58v20c0 8 6 14 14 14z" fill="#1d8b49" />
+  </g>
+  <g transform="translate(440 90)" fill="#9cc1f0" opacity="0.3">
+    <rect x="0" y="0" width="100" height="16" rx="8" />
+    <rect x="120" y="0" width="80" height="16" rx="8" />
+    <rect x="0" y="30" width="60" height="16" rx="8" />
+    <rect x="80" y="30" width="90" height="16" rx="8" />
+  </g>
+</svg>

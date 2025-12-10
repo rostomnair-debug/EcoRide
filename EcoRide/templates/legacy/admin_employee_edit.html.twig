@@ -1,0 +1,41 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Modifier un employé{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h4 fw-bold mb-1">Modifier l'employé</h1>
+        <p class="mb-0">Pseudo : {{ employee.pseudo }} · Email : {{ employee.email }}</p>
+    </div>
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="surface-card p-4">
+        <form method="post" action="{{ path('legacy_admin_edit_employee', { id: employee.id }) }}" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ employee.email }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="pseudo">Pseudo</label>
+                <input type="text" id="pseudo" name="pseudo" class="form-control" value="{{ employee.pseudo }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="password">Nouveau mot de passe (optionnel)</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Laisser vide pour ne pas changer">
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('edit_employee_' ~ employee.id) }}">
+                <a class="btn btn-outline-secondary" href="{{ path('legacy_admin_dashboard', {'tab': 'employees'}) }}">Annuler</a>
+                <button class="btn btn-success" type="submit">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

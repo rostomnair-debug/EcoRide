@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoRide - Publier un trajet</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/test.js"></script>
+</head>
+<body class="min-vh-100 d-flex flex-column justify-content-between">
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="assets/logo-ecoride-alt.svg" alt="EcoRide" class="navbar-brand-logo"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="covoiturages.html">Covoiturages</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Mon Compte</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="sign_in.html">Connexion</a></li>
+                <li><a class="dropdown-item" href="login.html">Inscription</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="my_space.html">Mon espace passager</a></li>
+                <li><a class="dropdown-item active" href="my_space_chauffeur.html">Mon espace chauffeur</a></li>
+              </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container my-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        <div class="mb-4 text-center text-md-start">
+          <h1 class="text-success fw-bold mb-1">Publier un nouveau trajet</h1>
+          <p class="text-muted mb-0">Partagez votre prochain déplacement pour trouver des passagers en quelques clics.</p>
+        </div>
+
+        <form action="publish_ride.php" method="post" class="shadow p-4 rounded bg-light">
+          <fieldset class="mb-4">
+            <legend class="h5 text-success">Informations principales</legend>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="departureCity" class="form-label">Ville de départ</label>
+                <input type="text" class="form-control" id="departureCity" name="departureCity" placeholder="ex : Paris" required>
+              </div>
+              <div class="col-md-6">
+                <label for="arrivalCity" class="form-label">Ville d'arrivée</label>
+                <input type="text" class="form-control" id="arrivalCity" name="arrivalCity" placeholder="ex : Lyon" required>
+              </div>
+              <div class="col-md-6">
+                <label for="departureDate" class="form-label">Date de départ</label>
+                <input type="date" class="form-control" id="departureDate" name="departureDate" required>
+              </div>
+              <div class="col-md-3">
+                <label for="departureTime" class="form-label">Heure de départ</label>
+                <input type="time" class="form-control" id="departureTime" name="departureTime" required>
+              </div>
+              <div class="col-md-3">
+                <label for="arrivalTime" class="form-label">Heure estimée d'arrivée</label>
+                <input type="time" class="form-control" id="arrivalTime" name="arrivalTime">
+              </div>
+              <div class="col-12">
+                <label for="pickupPoint" class="form-label">Point de rendez-vous</label>
+                <input type="text" class="form-control" id="pickupPoint" name="pickupPoint" placeholder="Gare Montparnasse, sortie 3">
+              </div>
+              <div class="col-12">
+                <label for="dropPoint" class="form-label">Point d'arrivée</label>
+                <input type="text" class="form-control" id="dropPoint" name="dropPoint" placeholder="Centre-ville de Lyon, Place Bellecour">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="mb-4">
+            <legend class="h5 text-success">Détails du trajet</legend>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="availableSeats" class="form-label">Places disponibles</label>
+                <input type="number" class="form-control" id="availableSeats" name="availableSeats" min="1" max="6" value="3" required>
+              </div>
+              <div class="col-md-4">
+                <label for="pricePerSeat" class="form-label">Prix par place (credits)</label>
+                <input type="number" class="form-control" id="pricePerSeat" name="pricePerSeat" min="1" step="0.5" value="15" required>
+              </div>
+              <div class="col-md-4">
+                <label for="vehicleSelect" class="form-label">Véhicule utilisé</label>
+                <select class="form-select" id="vehicleSelect" name="vehicleSelect">
+                  <option selected>Peugeot e-2008 · AB-123-CD</option>
+                  <option>Renault Clio E-Tech · CD-456-EF</option>
+                  <option>Autre véhicule</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="stops" class="form-label">Étapes ou arrêts prévus</label>
+                <input type="text" class="form-control" id="stops" name="stops" placeholder="Orléans, Dijon">
+              </div>
+              <div class="col-12">
+                <label for="tripDescription" class="form-label">Informations complémentaires</label>
+                <textarea class="form-control" id="tripDescription" name="tripDescription" rows="4" placeholder="Précisez vos conditions, horaire flexible, possibilité de déposer à l'aéroport..."></textarea>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="mb-4">
+            <legend class="h5 text-success">Conditions de voyage</legend>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label" for="smokingRule">Fumeurs</label>
+                <select class="form-select" id="smokingRule" name="smokingRule">
+                  <option value="non">Non autorisés</option>
+                  <option value="pause">Pause pour fumer possible</option>
+                  <option value="oui">Autorisé à bord</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="animalsRule">Animaux</label>
+                <select class="form-select" id="animalsRule" name="animalsRule">
+                  <option value="non">Non autorisés</option>
+                  <option value="petits">Animaux de petite taille en caisse</option>
+                  <option value="oui">Autorisé à bord</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="luggageRule">Bagages</label>
+                <select class="form-select" id="luggageRule" name="luggageRule">
+                  <option value="leger">Sac à dos uniquement</option>
+                  <option value="cabine">Type valise cabine</option>
+                  <option value="soute">Type bagage soute</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="my_space_chauffeur.html" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-success">Publier le trajet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <p class="mb-1">© 2025 EcoRide - Tous droits réservés</p>
+    <p>
+      <a href="mailto:contact@ecoride.com" class="text-white">contact@ecoride.com</a> |
+      <a href="mentions-legales.html" class="text-white">Mentions légales</a>
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,795 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Espace Employé{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h3 fw-bold mb-1">Espace Employé</h1>
+        <p class="mb-0">Valider les avis déposés par les passagers et suivre les incidents.</p>
+    </div>
+
+    <ul class="nav nav-tabs mt-4" id="employeeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Utilisateurs</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="avis-tab" data-bs-toggle="tab" data-bs-target="#avis" type="button" role="tab">Avis/Signalements</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="covoits-tab" data-bs-toggle="tab" data-bs-target="#covoits" type="button" role="tab">Covoiturages</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="support-tab" data-bs-toggle="tab" data-bs-target="#support" type="button" role="tab">Support</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="employeeTabsContent">
+        <div class="tab-pane fade show active" id="users" role="tabpanel">
+            <div class="surface-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-1">Gestion des utilisateurs</h5>
+                        <p class="mb-0 text-muted small">Créer, éditer, supprimer et octroyer des crédits aux utilisateurs.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+                            <input type="hidden" name="tab" value="users">
+                            <input type="hidden" name="pageUsers" value="1">
+                            <div class="input-group input-group-sm" style="min-width: 280px;">
+                                <input type="text" class="form-control" name="userSearch" value="{{ userSearch }}" placeholder="Rechercher pseudo / email">
+                                <button class="btn btn-outline-secondary" type="submit" title="Rechercher">
+                                    <i class="bi bi-search"></i><span class="visually-hidden">Rechercher</span>
+                                </button>
+                            </div>
+                        </form>
+                        <a class="btn btn-success btn-sm" href="{{ path('legacy_employee_add_user_form') }}" title="Ajouter un utilisateur">
+                            <i class="bi bi-person-plus-fill"></i><span class="visually-hidden">Ajouter un utilisateur</span>
+                        </a>
+                        <button class="btn btn-sm btn-outline-secondary collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                    </div>
+                </div>
+                <div class="collapse" id="collapseUsers">
+                    {% if users is empty %}
+                        <div class="card-quiet">Aucun utilisateur trouvé.</div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Pseudo</th>
+                                        <th>Email</th>
+                                        <th>Crédits</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for u in users %}
+                                        <tr>
+                                            <td class="fw-semibold">{{ u.pseudo ?? u.prenom }}</td>
+                                            <td class="text-muted small">{{ u.email }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    <span class="badge bg-light text-dark">{{ u.credit }} crédits</span>
+                                                    <form method="post" action="{{ path('legacy_employee_grant_credit', { id: u.id }) }}" class="d-inline-flex align-items-center gap-2">
+                                                        <input type="number" name="amount" min="1" value="5" class="form-control form-control-sm" style="width: 90px; height: 30px; margin-right: 5px;" required>
+                                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('credit_user_' ~ u.id) }}">
+                                                        <button class="btn btn-outline-success btn-sm" type="submit" title="Octroyer des crédits">
+                                                            + <i class="bi bi-coin"></i><span class="visually-hidden">Octroyer des crédits</span>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                            <td class="text-end d-flex gap-2 justify-content-end flex-wrap">
+                                                <a class="btn btn-outline-primary btn-sm" href="{{ path('legacy_employee_edit_user', { id: u.id }) }}" title="Modifier">
+                                                    <i class="bi bi-pencil-square"></i><span class="visually-hidden">Modifier</span>
+                                                </a>
+                                                <form method="post" action="{{ path('legacy_employee_delete_user', { id: u.id }) }}" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                                                    <button class="btn btn-outline-danger btn-sm" type="submit" title="Supprimer">
+                                                        <i class="bi bi-trash"></i><span class="visually-hidden">Supprimer</span>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if usersPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if usersPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageUsers': usersPage-1 < 1 ? 1 : usersPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..usersPages %}
+                                        <li class="page-item {% if p == usersPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'pageUsers': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if usersPage >= usersPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageUsers': usersPage+1 > usersPages ? usersPages : usersPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="avis" role="tabpanel">
+        <div class="row g-4 mt-4">
+        <div class="col-md-12">
+            <div class="surface-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Avis en attente</h5>
+                    <button class="btn btn-sm btn-outline-secondary collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapsePendingAvis" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                </div>
+                <div class="collapse" id="collapsePendingAvis">
+                <div class="d-flex gap-2 mb-2">
+                    <form method="get" class="d-flex align-items-center gap-2">
+                        <input type="hidden" name="pagePending" value="1">
+                        <label class="form-label mb-0 small text-muted">Trier par</label>
+                        <select name="pendingSort" class="form-select form-select-sm" style="max-width: 160px;">
+                            <option value="id" {% if pendingSort is defined and pendingSort == 'id' %}selected{% endif %}>Date</option>
+                            <option value="note" {% if pendingSort is defined and pendingSort == 'note' %}selected{% endif %}>Note</option>
+                        </select>
+                        <select name="pendingDir" class="form-select form-select-sm" style="min-width: 130px;">
+                            <option value="desc" {% if pendingDir is defined and pendingDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                            <option value="asc" {% if pendingDir is defined and pendingDir == 'asc' %}selected{% endif %}>Croissant</option>
+                        </select>
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                    </form>
+                </div>
+                {% if pendingAvis is empty %}
+                    <div class="card-quiet">Aucun avis en attente.</div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Note</th>
+                                    <th>Commentaire</th>
+                                    <th>Auteur</th>
+                                    <th>Trajet</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for avis in pendingAvis %}
+                                    <tr>
+                                        <td>{{ avis.note }}</td>
+                                        <td class="text-muted small">{{ avis.commentaire }}</td>
+                                        <td>{{ avis.auteurPrenom ?? avis.utilisateur.prenom }} {{ avis.auteurNom ?? avis.utilisateur.nom }}</td>
+                                        <td>
+                                            {% if avis.covoiturage %}
+                                                {{ avis.covoiturage.lieuDepart }} → {{ avis.covoiturage.lieuArrivee }} ({{ avis.covoiturage.dateDepart|date('d/m') }})
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="d-flex gap-2">
+                                            <form method="post" action="{{ path('legacy_avis_approve', { id: avis.id }) }}">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('approve_' ~ avis.id) }}">
+                                                <button class="btn btn-success btn-sm" type="submit">Valider</button>
+                                            </form>
+                                            <form method="post" action="{{ path('legacy_avis_reject', { id: avis.id }) }}">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('reject_' ~ avis.id) }}">
+                                                <button class="btn btn-outline-danger btn-sm" type="submit">Refuser</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if pendingPages > 1 %}
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center">
+                                <li class="page-item {% if pendingPage <= 1 %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ path('legacy_employee_space', {'pagePending': pendingPage-1 < 1 ? 1 : pendingPage-1}) }}">Précédent</a>
+                                </li>
+                                {% for p in 1..pendingPages %}
+                                    <li class="page-item {% if p == pendingPage %}active{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pagePending': p}) }}">{{ p }}</a>
+                                    </li>
+                                {% endfor %}
+                                <li class="page-item {% if pendingPage >= pendingPages %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ path('legacy_employee_space', {'pagePending': pendingPage+1 > pendingPages ? pendingPages : pendingPage+1}) }}">Suivant</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="surface-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Avis traités</h5>
+                    <button class="btn btn-sm btn-outline-secondary collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseProcessedAvis" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                </div>
+                <div class="collapse" id="collapseProcessedAvis">
+                    <div class="d-flex gap-2 mb-2 mt-3">
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="pageAvisSignal" value="1">
+                            <label class="form-label mb-0 small text-muted">Trier par</label>
+                            <select name="signaledAvisSort" class="form-select form-select-sm" style="max-width: 160px;">
+                                <option value="id" {% if signaledAvisSort is defined and signaledAvisSort == 'id' %}selected{% endif %}>Date</option>
+                                <option value="note" {% if signaledAvisSort is defined and signaledAvisSort == 'note' %}selected{% endif %}>Note</option>
+                            </select>
+                            <select name="signaledAvisDir" class="form-select form-select-sm" style="min-width: 130px;">
+                                <option value="desc" {% if signaledAvisDir is defined and signaledAvisDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                <option value="asc" {% if signaledAvisDir is defined and signaledAvisDir == 'asc' %}selected{% endif %}>Croissant</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                        </form>
+                    </div>
+                    {% if signaledAvis is empty %}
+                        <div class="card-quiet">Aucun avis traité.</div>
+                    {% else %}
+                        <div class="list-group list-group-flush">
+                            {% for avis in signaledAvis %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-semibold">Note : {{ avis.note }}</span>
+                                        {% if avis.statut == 'valide' %}
+                                            <span class="badge bg-success">Validé</span>
+                                        {% elseif avis.statut == 'refuse' %}
+                                            <span class="badge bg-danger">Refusé</span>
+                                        {% elseif avis.signale %}
+                                            <span class="badge bg-warning text-dark">Signalé</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ avis.commentaire }}</p>
+                                    <p class="mb-0 text-muted small">Motif : {{ avis.motifSignalement ?? 'Non précisé' }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if signaledAvisPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if signaledAvisPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageAvisSignal': signaledAvisPage-1 < 1 ? 1 : signaledAvisPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..signaledAvisPages %}
+                                        <li class="page-item {% if p == signaledAvisPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'pageAvisSignal': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if signaledAvisPage >= signaledAvisPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageAvisSignal': signaledAvisPage+1 > signaledAvisPages ? signaledAvisPages : signaledAvisPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                    {% if historyAvis is defined and historyAvis is not empty %}
+                        <hr>
+                        <h6 class="fw-semibold mb-2">Historique des signalements</h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <form method="get" class="d-flex align-items-center gap-2">
+                                <input type="hidden" name="pageHistoryAvis" value="1">
+                                <label class="form-label mb-0 small text-muted">Trier par</label>
+                                <select name="historyAvisSort" class="form-select form-select-sm" style="max-width: 160px;">
+                                    <option value="id" {% if historyAvisSort is defined and historyAvisSort == 'id' %}selected{% endif %}>Date</option>
+                                    <option value="note" {% if historyAvisSort is defined and historyAvisSort == 'note' %}selected{% endif %}>Note</option>
+                                </select>
+                                <select name="historyAvisDir" class="form-select form-select-sm" style="min-width: 130px;">
+                                    <option value="desc" {% if historyAvisDir is defined and historyAvisDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                    <option value="asc" {% if historyAvisDir is defined and historyAvisDir == 'asc' %}selected{% endif %}>Croissant</option>
+                                </select>
+                                <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                            </form>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for avis in historyAvis %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-semibold">Note : {{ avis.note }}</span>
+                                        <span class="badge bg-secondary">Traité</span>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ avis.commentaire }}</p>
+                                    <p class="mb-0 text-muted small">Motif : {{ avis.motifSignalement ?? 'Non précisé' }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if historyAvisPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if historyAvisPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryAvis': historyAvisPage-1 < 1 ? 1 : historyAvisPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..historyAvisPages %}
+                                        <li class="page-item {% if p == historyAvisPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryAvis': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if historyAvisPage >= historyAvisPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryAvis': historyAvisPage+1 > historyAvisPages ? historyAvisPages : historyAvisPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="surface-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Trajets signalés</h5>
+                    <button class="btn btn-sm btn-outline-secondary collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseSignaledCovoits" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                </div>
+                <div class="collapse" id="collapseSignaledCovoits">
+                    <div class="d-flex gap-2 mb-2 mt-3">
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="pageCovoitSignal" value="1">
+                            <label class="form-label mb-0 small text-muted">Trier par</label>
+                            <select name="signaledCovoitSort" class="form-select form-select-sm" style="max-width: 160px;">
+                                <option value="dateDepart" {% if signaledCovoitSort is defined and signaledCovoitSort == 'dateDepart' %}selected{% endif %}>Date</option>
+                                <option value="nbPlace" {% if signaledCovoitSort is defined and signaledCovoitSort == 'nbPlace' %}selected{% endif %}>Places</option>
+                                <option value="statut" {% if signaledCovoitSort is defined and signaledCovoitSort == 'statut' %}selected{% endif %}>Statut</option>
+                            </select>
+                            <select name="signaledCovoitDir" class="form-select form-select-sm" style="min-width: 130px;">
+                                <option value="desc" {% if signaledCovoitDir is defined and signaledCovoitDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                <option value="asc" {% if signaledCovoitDir is defined and signaledCovoitDir == 'asc' %}selected{% endif %}>Croissant</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                        </form>
+                    </div>
+                    {% if signaledCovoits is empty %}
+                        <div class="card-quiet">Aucun trajet signalé.</div>
+                    {% else %}
+                        <div class="list-group list-group-flush">
+                            {% for trajet in signaledCovoits %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-semibold">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</span>
+                                        <span class="badge bg-danger">Signalé</span>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+                                    <p class="mb-0 text-muted small">Motif : {{ trajet.motifSignalement ?? 'Non précisé' }}</p>
+                                    <div class="mt-2 d-flex gap-2">
+                                        <form method="post" action="{{ path('legacy_signal_covoit_resolve', { id: trajet.id }) }}">
+                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('resolve_covoit_' ~ trajet.id) }}">
+                                            <button class="btn btn-outline-success btn-sm" type="submit">Marquer traité</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if signaledCovoitPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if signaledCovoitPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageCovoitSignal': signaledCovoitPage-1 < 1 ? 1 : signaledCovoitPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..signaledCovoitPages %}
+                                        <li class="page-item {% if p == signaledCovoitPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'pageCovoitSignal': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if signaledCovoitPage >= signaledCovoitPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageCovoitSignal': signaledCovoitPage+1 > signaledCovoitPages ? signaledCovoitPages : signaledCovoitPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                    {% if historyCovoits is defined and historyCovoits is not empty %}
+                        <hr>
+                        <h6 class="fw-semibold mb-2">Historique des signalements</h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <form method="get" class="d-flex align-items-center gap-2">
+                                <input type="hidden" name="pageHistoryCovoit" value="1">
+                                <label class="form-label mb-0 small text-muted">Trier par</label>
+                                <select name="historyCovoitSort" class="form-select form-select-sm" style="max-width: 160px;">
+                                    <option value="dateDepart" {% if historyCovoitSort is defined and historyCovoitSort == 'dateDepart' %}selected{% endif %}>Date</option>
+                                    <option value="nbPlace" {% if historyCovoitSort is defined and historyCovoitSort == 'nbPlace' %}selected{% endif %}>Places</option>
+                                    <option value="statut" {% if historyCovoitSort is defined and historyCovoitSort == 'statut' %}selected{% endif %}>Statut</option>
+                                </select>
+                                <select name="historyCovoitDir" class="form-select form-select-sm" style="min-width: 130px;">
+                                    <option value="desc" {% if historyCovoitDir is defined and historyCovoitDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                    <option value="asc" {% if historyCovoitDir is defined and historyCovoitDir == 'asc' %}selected{% endif %}>Croissant</option>
+                                </select>
+                                <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                            </form>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for trajet in historyCovoits %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-semibold">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</span>
+                                        <span class="badge bg-secondary">Traité</span>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+                                    <p class="mb-0 text-muted small">Motif : {{ trajet.motifSignalement ?? 'Non précisé' }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if historyCovoitPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if historyCovoitPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryCovoit': historyCovoitPage-1 < 1 ? 1 : historyCovoitPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..historyCovoitPages %}
+                                        <li class="page-item {% if p == historyCovoitPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryCovoit': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if historyCovoitPage >= historyCovoitPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryCovoit': historyCovoitPage+1 > historyCovoitPages ? historyCovoitPages : historyCovoitPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+
+        <div class="tab-pane fade" id="covoits" role="tabpanel">
+        <div class="row g-4 mt-4">
+        <div class="col-md-6">
+            <div class="surface-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Trajets signalés</h5>
+                    <button class="btn btn-sm btn-outline-secondary collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseCovoitsSignal" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                </div>
+                <div class="collapse" id="collapseCovoitsSignal">
+                    <div class="d-flex gap-2 mb-2 mt-3">
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="pageCovoitSignal" value="1">
+                            <label class="form-label mb-0 small text-muted">Trier par</label>
+                            <select name="signaledCovoitSort" class="form-select form-select-sm" style="max-width: 160px;">
+                                <option value="dateDepart" {% if signaledCovoitSort is defined and signaledCovoitSort == 'dateDepart' %}selected{% endif %}>Date</option>
+                                <option value="nbPlace" {% if signaledCovoitSort is defined and signaledCovoitSort == 'nbPlace' %}selected{% endif %}>Places</option>
+                                <option value="statut" {% if signaledCovoitSort is defined and signaledCovoitSort == 'statut' %}selected{% endif %}>Statut</option>
+                            </select>
+                            <select name="signaledCovoitDir" class="form-select form-select-sm" style="min-width: 130px;">
+                                <option value="desc" {% if signaledCovoitDir is defined and signaledCovoitDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                <option value="asc" {% if signaledCovoitDir is defined and signaledCovoitDir == 'asc' %}selected{% endif %}>Croissant</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                        </form>
+                    </div>
+                    {% if signaledCovoits is empty %}
+                        <div class="card-quiet">Aucun trajet signalé.</div>
+                    {% else %}
+                        <div class="list-group list-group-flush">
+                            {% for trajet in signaledCovoits %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-semibold">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</span>
+                                        <span class="badge bg-danger">Signalé</span>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+                                    <p class="mb-0 text-muted small">Motif : {{ trajet.motifSignalement ?? 'Non précisé' }}</p>
+                                    <div class="mt-2 d-flex gap-2">
+                                        <form method="post" action="{{ path('legacy_signal_covoit_resolve', { id: trajet.id }) }}">
+                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('resolve_covoit_' ~ trajet.id) }}">
+                                            <button class="btn btn-outline-success btn-sm" type="submit">Marquer traité</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if signaledCovoitPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if signaledCovoitPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageCovoitSignal': signaledCovoitPage-1 < 1 ? 1 : signaledCovoitPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..signaledCovoitPages %}
+                                        <li class="page-item {% if p == signaledCovoitPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'pageCovoitSignal': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if signaledCovoitPage >= signaledCovoitPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageCovoitSignal': signaledCovoitPage+1 > signaledCovoitPages ? signaledCovoitPages : signaledCovoitPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="surface-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Historique des signalements</h5>
+                    <button class="btn btn-sm btn-outline-secondary collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseCovoitsHistory" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                </div>
+                <div class="collapse" id="collapseCovoitsHistory">
+                    <div class="d-flex gap-2 mb-2 mt-3">
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="pageHistoryCovoit" value="1">
+                            <label class="form-label mb-0 small text-muted">Trier par</label>
+                            <select name="historyCovoitSort" class="form-select form-select-sm" style="max-width: 160px;">
+                                <option value="dateDepart" {% if historyCovoitSort is defined and historyCovoitSort == 'dateDepart' %}selected{% endif %}>Date</option>
+                                <option value="nbPlace" {% if historyCovoitSort is defined and historyCovoitSort == 'nbPlace' %}selected{% endif %}>Places</option>
+                                <option value="statut" {% if historyCovoitSort is defined and historyCovoitSort == 'statut' %}selected{% endif %}>Statut</option>
+                            </select>
+                            <select name="historyCovoitDir" class="form-select form-select-sm" style="min-width: 130px;;">
+                                <option value="desc" {% if historyCovoitDir is defined and historyCovoitDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                <option value="asc" {% if historyCovoitDir is defined and historyCovoitDir == 'asc' %}selected{% endif %}>Croissant</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                        </form>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for trajet in historyCovoits %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</span>
+                                    <span class="badge bg-secondary">Traité</span>
+                                </div>
+                                <p class="mb-1 text-muted small">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+                                <p class="mb-0 text-muted small">Motif : {{ trajet.motifSignalement ?? 'Non précisé' }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if historyCovoitPages > 1 %}
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center">
+                                <li class="page-item {% if historyCovoitPage <= 1 %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryCovoit': historyCovoitPage-1 < 1 ? 1 : historyCovoitPage-1}) }}">Précédent</a>
+                                </li>
+                                {% for p in 1..historyCovoitPages %}
+                                    <li class="page-item {% if p == historyCovoitPage %}active{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryCovoit': p}) }}">{{ p }}</a>
+                                    </li>
+                                {% endfor %}
+                                <li class="page-item {% if historyCovoitPage >= historyCovoitPages %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ path('legacy_employee_space', {'pageHistoryCovoit': historyCovoitPage+1 > historyCovoitPages ? historyCovoitPages : historyCovoitPage+1}) }}">Suivant</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+        <div class="tab-pane fade" id="support" role="tabpanel">
+            <div class="surface-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-0">Support</h5>
+                        <p class="mb-0 text-muted small">Messages reçus via le formulaire contact</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark">Total : {{ supportPages > 0 ? supportPages * 6 : 0 }}</span>
+                        <button class="btn btn-outline-secondary btn-sm collapse-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseSupport" aria-expanded="false">
+                            <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="collapse" id="collapseSupport">
+                    {% if supportMessages is empty %}
+                        <div class="card-quiet">Aucun message reçu pour le moment.</div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 22%;">Expéditeur</th>
+                                        <th>Objet</th>
+                                        <th style="width: 16%;">Reçu</th>
+                                        <th style="width: 14%;">Statut</th>
+                                        <th style="width: 20%;" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in supportMessages %}
+                                        <tr>
+                                            <td class="align-middle">
+                                                <div class="fw-semibold">{{ m.name }}</div>
+                                                <div class="text-muted small">{{ m.email }}</div>
+                                                {% if m.pseudo %}<div class="text-muted small">Pseudo : {{ m.pseudo }}</div>{% endif %}
+                                            </td>
+                                            <td class="align-middle">{{ m.subject }}</td>
+                                            <td class="text-muted small align-middle">{{ m.createdAt|date('d/m/Y H:i') }}</td>
+                                            <td class="align-middle">
+                                                {% if m.replied %}
+                                                    <span class="badge bg-success">Répondu</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">En attente</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="d-flex gap-2 flex-wrap justify-content-end">
+                                                    <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#msg-{{ m.id }}">Voir</button>
+                                                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#reply-{{ m.id }}">Répondre</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="collapse" id="msg-{{ m.id }}">
+                                            <td colspan="5">
+                                                <div class="p-3 bg-light rounded">
+                                                    <div class="fw-bold mb-2">Message</div>
+                                                    <div class="text-muted">{{ m.message }}</div>
+                                                    {% if m.replied and m.replyContent %}
+                                                        <hr>
+                                                        <div class="fw-bold mb-2">Votre réponse</div>
+                                                        <div class="text-muted">{{ m.replyContent }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="collapse" id="reply-{{ m.id }}">
+                                            <td colspan="5">
+                                                <div class="p-3 bg-white border rounded">
+                                                    <form method="post" action="{{ path('legacy_employee_reply_support', {id: m.id}) }}" class="support-reply-form">
+                                                        <textarea id="reply-text-{{ m.id }}" name="reply" class="form-control" rows="4" placeholder="Réponse Team Support EcoRide" data-mde="reply">{{ m.replyContent }}</textarea>
+                                                        <div class="d-flex justify-content-end gap-2 mt-2">
+                                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('reply_support_' ~ m.id) }}">
+                                                            <button class="btn btn-primary btn-sm" type="submit">Envoyer</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if supportPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if supportPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'tab': 'support', 'pageSupport': supportPage-1 < 1 ? 1 : supportPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..supportPages %}
+                                        <li class="page-item {% if p == supportPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_employee_space', {'tab': 'support', 'pageSupport': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if supportPage >= supportPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_employee_space', {'tab': 'support', 'pageSupport': supportPage+1 > supportPages ? supportPages : supportPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block legacy_scripts %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/easymde/easymde.min.css') }}">
+    <script src="{{ asset('vendor/easymde/easymde.min.js') }}"></script>
+    <script>
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.toolbar button[data-md]');
+            if (!btn) return;
+            e.preventDefault();
+            const targetId = btn.closest('.toolbar').dataset.target;
+            const textarea = document.querySelector(targetId);
+            if (!textarea) return;
+            const token = btn.dataset.md;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const value = textarea.value;
+            if (token === '[]()') {
+                const selected = value.substring(start, end);
+                const insertion = '[' + (selected || 'lien') + '](https://)';
+                textarea.value = value.slice(0, start) + insertion + value.slice(end);
+                textarea.setSelectionRange(start + 1, start + insertion.length - 1);
+            } else {
+                const insertion = token + value.substring(start, end) + token;
+                textarea.value = value.slice(0, start) + insertion + value.slice(end);
+                textarea.setSelectionRange(start + token.length, start + token.length);
+            }
+            textarea.focus();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const editors = new WeakMap();
+            const initMde = (area) => {
+                if (editors.has(area)) {
+                    const inst = editors.get(area);
+                    setTimeout(() => inst.codemirror.refresh(), 150);
+                    return;
+                }
+                const mde = new EasyMDE({
+                    element: area,
+                    autoDownloadFontAwesome: false,
+                    spellChecker: false,
+                    status: false,
+                    minHeight: '120px',
+                    toolbar: [
+                        'heading','heading-smaller','heading-bigger', '|',
+                        'bold','italic','strikethrough','|',
+                        'code',
+                        'horizontal-rule',
+                        'quote',
+                        'unordered-list','ordered-list', '|',                       
+                        'link','image','upload-image', '|', 
+                        'preview', 'side-by-side', 'fullscreen', '|', 
+                        'guide', 'clean-block',  '|',  
+                        'undo','redo'
+                    ]
+                });
+                editors.set(area, mde);
+            };
+
+            document.querySelectorAll('textarea[data-mde="reply"]').forEach(initMde);
+
+            document.querySelectorAll('.collapse').forEach(col => {
+                col.addEventListener('shown.bs.collapse', () => {
+                    col.querySelectorAll('textarea[data-mde="reply"]').forEach(initMde);
+                });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const currentTab = params.get('tab') || 'users';
+            const trigger = document.querySelector(`#employeeTabs button[data-bs-target="#${currentTab}"]`);
+            if (trigger) {
+                new bootstrap.Tab(trigger).show();
+            }
+            document.querySelectorAll('#employeeTabs button[data-bs-toggle="tab"]').forEach(btn => {
+                btn.addEventListener('shown.bs.tab', function(e) {
+                    const targetId = e.target.getAttribute('data-bs-target')?.replace('#', '') || 'users';
+                    const url = new URL(window.location);
+                    url.searchParams.set('tab', targetId);
+                    history.replaceState({}, '', url);
+                });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggles = document.querySelectorAll('.collapse-toggle');
+            const refreshToggleLabels = () => {
+                toggles.forEach(btn => {
+                    const target = btn.getAttribute('data-bs-target');
+                    const col = target ? document.querySelector(target) : null;
+                    const open = col?.classList.contains('show');
+                    const icon = btn.querySelector('i.bi');
+                    const label = btn.querySelector('span');
+                    if (icon) {
+                        icon.classList.remove('bi-chevron-down','bi-chevron-up');
+                        icon.classList.add(open ? 'bi-chevron-up' : 'bi-chevron-down');
+                    }
+                    if (label) {
+                        label.textContent = open ? 'Masquer' : 'Afficher';
+                    } else {
+                        btn.textContent = open ? 'Masquer' : 'Afficher';
+                    }
+                });
+            };
+            toggles.forEach(btn => {
+                const target = btn.getAttribute('data-bs-target');
+                const col = target ? document.querySelector(target) : null;
+                if (col) {
+                    col.addEventListener('shown.bs.collapse', refreshToggleLabels);
+                    col.addEventListener('hidden.bs.collapse', refreshToggleLabels);
+                }
+                btn.addEventListener('click', () => setTimeout(refreshToggleLabels, 150));
+            });
+            refreshToggleLabels();
+        });
+    </script>
+{% endblock %}

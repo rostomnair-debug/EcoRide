@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title>Avatar utilisateur vérifié</title>
+  <desc>Avatar générique avec badge vérifié EcoRide</desc>
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d6efd"/>
+      <stop offset="100%" stop-color="#2fb36c"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#grad2)"/>
+  <circle cx="64" cy="50" r="26" fill="#f7f9f5" opacity="0.95"/>
+  <path d="M28 112c4-22 22-32 36-32s32 10 36 32" fill="#f7f9f5" opacity="0.95"/>
+  <circle cx="94" cy="94" r="18" fill="#0f3d27" opacity="0.85"/>
+  <path d="M86 94l6 6 10-12" fill="none" stroke="#2fb36c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant U as Utilisateur (passager)
+    participant FE as Front/Twig
+    participant API as Contrôleur Covoiturage
+    participant PAY as Crédit/Commission
+    participant MAIL as Mailer
+    participant DB as BDD
+
+    U->>FE: Choisit un trajet (page détail)
+    FE->>U: Modal de confirmation (prix + commission)
+    U->>API: Confirmer participation (POST)
+    API->>PAY: Vérifier crédits disponibles
+    PAY->>DB: Débiter passager / créditer conducteur (prix - commission)
+    PAY-->>API: OK (nouveau solde)
+    API->>DB: Ajouter participant, décrémenter nb places
+    API->>MAIL: Envoyer mail de confirmation trajet
+    MAIL-->>U: Confirmation réservation
+    API-->>FE: Redirect/flash succès
+    FE-->>U: Affiche succès + solde/état mis à jour

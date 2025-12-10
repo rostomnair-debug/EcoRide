@@ -1,0 +1,97 @@
+erDiagram
+    UTILISATEUR {
+        int id PK
+        string pseudo
+        string nom
+        string prenom
+        string email
+        string password
+        string role
+        decimal credit
+        boolean verifie
+        boolean suspended
+        float note_moyenne
+        datetime created_at
+        date date_naissance
+        string slug
+        string photo
+    }
+
+    MARQUE {
+        int id PK
+        string nom
+    }
+
+    VOITURE {
+        int id PK
+        string modele
+        string immatriculation
+        string energie
+        string couleur
+        date date_premiere_immatriculation
+        datetime created_at
+        string proprietaire_pseudo
+        string proprietaire_nom
+        string proprietaire_prenom
+    }
+
+    COVOITURAGE {
+        int id PK
+        string slug
+        string lieuDepart
+        string lieuArrivee
+        datetime dateDepart
+        datetime dateArrivee
+        int nbPlace
+        decimal prixPersonne
+        string statut
+        boolean signale
+        string motifSignalement
+        int commission
+        datetime created_at
+        string point_rdv
+        string point_arrivee
+    }
+
+    AVIS {
+        int id PK
+        int note
+        string commentaire
+        string statut
+        boolean signale
+        string motifSignalement
+        datetime created_at
+        string auteur_nom
+        string auteur_prenom
+        string auteur_pseudo
+    }
+
+    COVOITURAGE_PARTICIPANT {
+        int id PK
+        string participant_nom
+        string participant_prenom
+        string participant_pseudo
+    }
+
+    SUPPORT_MESSAGE {
+        int id PK
+        string name
+        string email
+        string pseudo
+        string subject
+        text message
+        boolean replied
+        text replyContent
+        datetime created_at
+    }
+
+    UTILISATEUR ||--o{ VOITURE : possede
+    MARQUE ||--o{ VOITURE : "est de"
+    VOITURE ||--o{ COVOITURAGE : "utilisee pour"
+    UTILISATEUR ||--o{ COVOITURAGE : "cree (conducteur)"
+    COVOITURAGE ||--o{ COVOITURAGE_PARTICIPANT : "a des"
+    UTILISATEUR ||--o{ COVOITURAGE_PARTICIPANT : "participe"
+    COVOITURAGE ||--o{ AVIS : "recueille"
+    UTILISATEUR ||--o{ AVIS : "emet"
+    UTILISATEUR ||--o{ AVIS : "est note (ratedUser)"
+    UTILISATEUR ||--o{ SUPPORT_MESSAGE : "envoie"

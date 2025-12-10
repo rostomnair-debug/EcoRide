@@ -1,0 +1,23 @@
+flowchart LR
+    actorVisitor([Visiteur])
+    actorUser([Utilisateur])
+    actorDriver([Chauffeur/Utilisateur])
+    actorEmployee([Employé])
+    actorAdmin([Admin])
+
+    subgraph UC[Cas d'utilisation]
+        UC1(Créer un compte)
+        UC2(Publier un trajet)
+        UC3(Participer à un trajet)
+        UC4(Valider/Refuser un avis)
+        UC5(Suspendre un compte)
+    end
+
+    actorVisitor --> UC1
+    actorUser --> UC2
+    actorDriver --> UC2
+    actorUser --> UC3
+    actorDriver --> UC3
+    actorEmployee --> UC4
+    actorAdmin --> UC5
+    actorAdmin --> UC4

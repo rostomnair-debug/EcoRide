@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoRide - Inscription</title>
+  <!-- Bootstrap CDN (optionnel si tu veux du rapide) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/test.js"></script>
+</head>
+<body class="min-vh-100 d-flex flex-column justify-content-between">
+  <!-- Navigation -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+            <div class="container">
+            <a class="navbar-brand" href="index.html"><img src="assets/logo-ecoride-alt.svg" alt="EcoRide" class="navbar-brand-logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+                <li class="nav-item"><a class="nav-link" href="covoiturages.html">Covoiturages</a></li>
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle active" data-bs-toggle="dropdown" href="login.html" role="button" aria-expanded="false">Mon Compte</a>
+                    <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="sign_in.html">Connexion</a></li>
+                    <li><a class="dropdown-item active" href="login.html">Inscription</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            </div>
+        </nav>
+    </header>
+  
+  <!-- Section Hero / Form inscription -->
+    <main class="container my-5">
+        <div class="text-center mb-4">
+            <h1 class="text-success fw-bold">Devenir membre EcoRide 🌱</h1>
+        </div>
+        <!-- Form inscription -->
+        <div class="container">
+            <form action="inscription.php" method="post" id="form" class="row g-3 shadow p-4 rounded bg-light">
+                <fieldset>
+                    <legend>Inscrivez-vous</legend>
+                    <div class="mb-3">
+                        <label for="username"class="form-label">Nom</label>
+                        <input class="form-control" type="text" name="name" id="NomInput" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="firstname"class="form-label">Prenom</label>
+                        <input class="form-control" type="text" name="firstname" id="PrenomInput">
+                    </div>
+                        
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label ">Adresse mail</label>
+                        <input type="email" class="form-control" id="EmailInput" placeholder="adresse@mail.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="PasswordInput" class="form-label">Créez un mot de passe</label>
+                        <input type="password" id="PasswordInput" class="form-control">
+                        <div class="invalid-feedback">
+                            Votre mot de passe doit contenir entre 8-20 caractères, composé lettres majuscules, minuscules, chiffres, caracteres sépciaux, et NE doit PAS contenir d'espace ou d'emoji.
+                        </div>
+                        <div class="valid-feedback">
+                            Le mot de passe est robuste.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ValidatePasswordInput" class="form-label">Confirmez le mot de passe</label>
+                        <input type="password" id="ValidatePasswordInput" class="form-control">
+                        <div class="invalid-feedback">
+                            Les mots de passe doivent être identiques.
+                        </div>
+                        <div class="valid-feedback">
+                            La confirmation correspond.
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" role="switch" name="role" id="passager" switch checked>
+                        <label class="form-check-label" for="passager">
+                            Passager
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" role="switch" name="role" id="chauffeur" switch>
+                        <label class="form-check-label" for="chauffeur">
+                            Chauffeur
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" role="switch" name="role" id="chauffeurPassager" switch>
+                        <label class="form-check-label" for="chauffeurPassager">
+                            Chauffeur et Passager
+                        </label>
+                    </div>
+                        
+                        
+                </fieldset>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success" id="add" type="submit">S'inscrire</button>
+                    <button class="btn btn-secondary " id="undo" type="reset">Annuler la saisie</button>
+                    
+                </div> 
+                
+                    
+                    
+            </form>
+        </div>
+    </main>
+
+
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <p class="mb-1">© 2025 EcoRide - Tous droits réservés</p>
+    <p>
+      <a href="mailto:contact@ecoride.com" class="text-white">contact@ecoride.com</a> | 
+      <a href="mentions-legales.html" class="text-white">Mentions légales</a>
+    </p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Covoiturages{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-md-8">
+                <p class="mb-1 text-white-50">Prochains départs mis à jour en temps réel</p>
+                <h1 class="h3 fw-bold mb-2">Covoiturages disponibles</h1>
+                <p class="mb-0">Choisissez votre destination, le créneau qui vous convient et voyagez avec des conducteurs vérifiés.</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="pill d-inline-flex align-items-center gap-2"><i class="bi bi-shield-check"></i> Conducteurs vérifiés</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="surface-card p-4 p-md-5 position-relative" id="resultsContainer" style="overflow:hidden;">
+        <div id="resultsOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="background: rgba(255,255,255,0.75); z-index: 3;">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+        </div>
+        <div id="resultsContent">
+            <form method="get" class="row g-3 mb-4 position-relative" id="filtersForm">
+                <div id="filtersLoader" class="position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="background: rgba(255,255,255,0.7); z-index: 2;">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="depart">Départ</label>
+                    <input type="text" class="form-control" id="depart" name="depart" value="{{ filters.depart }}" placeholder="Ville de départ">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="arrivee">Arrivée</label>
+                    <input type="text" class="form-control" id="arrivee" name="arrivee" value="{{ filters.arrivee }}" placeholder="Ville d'arrivée">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="date">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ filters.date }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="prixMax">Prix max (crédits)</label>
+                    <input type="number" class="form-control" id="prixMax" name="prixMax" value="{{ filters.prixMax }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="dureeMax">Durée max (h)</label>
+                    <input type="number" class="form-control" id="dureeMax" name="dureeMax" value="{{ filters.dureeMax }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="noteMin">Note min</label>
+                    <input type="number" step="0.1" min="0" max="5" class="form-control" id="noteMin" name="noteMin" value="{{ filters.noteMin }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="eco" name="eco" value="1" {% if filters.eco %}checked{% endif %}>
+                        <label class="form-check-label" for="eco">Écologique</label>
+                    </div>
+                </div>
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <a class="btn btn-outline-secondary" href="{{ path('legacy_covoiturages') }}">Réinitialiser</a>
+                    <button class="btn btn-success" type="submit">Rechercher</button>
+                </div>
+            </form>
+            <div class="d-flex justify-content-end mb-3">
+                <form method="get" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="depart" value="{{ filters.depart }}">
+                    <input type="hidden" name="arrivee" value="{{ filters.arrivee }}">
+                    <input type="hidden" name="date" value="{{ filters.date }}">
+                    <input type="hidden" name="prixMax" value="{{ filters.prixMax }}">
+                    <input type="hidden" name="dureeMax" value="{{ filters.dureeMax }}">
+                    <input type="hidden" name="noteMin" value="{{ filters.noteMin }}">
+                    <input type="hidden" name="eco" value="{{ filters.eco ? 1 : '' }}">
+                    <input type="hidden" name="page" value="1">
+                    <label class="form-label mb-0 small text-muted">Trier les résultats</label>
+                    <select class="form-select form-select-sm" name="sort" style="max-width: 160px;">
+                        <option value="date" {% if filters.sort == 'date' %}selected{% endif %}>Date</option>
+                        <option value="price" {% if filters.sort == 'price' %}selected{% endif %}>Prix</option>
+                    </select>
+                    <select class="form-select form-select-sm" name="dir" style="max-width: 120px;">
+                        <option value="asc" {% if filters.dir == 'asc' %}selected{% endif %}>Croissant</option>
+                        <option value="desc" {% if filters.dir == 'desc' %}selected{% endif %}>Décroissant</option>
+                    </select>
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                </form>
+            </div>
+
+            {% if covoiturages is empty %}
+                <div class="card-quiet text-center mb-4">
+                    <p class="mb-1 fw-semibold text-success">Aucun covoiturage à cette date.</p>
+                    <p class="text-muted mb-0">Voici des trajets similaires à d'autres dates.</p>
+                </div>
+                {% if altBefore is not empty %}
+                    <h5 class="mb-2 text-muted">Dates précédentes</h5>
+                    <div class="row g-4 mb-4">
+                        {% for trajet in altBefore %}
+                            {% include 'legacy/partials/_covoit_card.html.twig' with {
+                                trajet: trajet,
+                                avgNote: avgNotes[trajet.id]|default(0),
+                                driverAvg: driverAverages[trajet.voiture.proprietaire.id]|default(0)
+                            } %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if altAfter is not empty %}
+                    <h5 class="mb-2 text-muted">Dates suivantes</h5>
+                    <div class="row g-4">
+                        {% for trajet in altAfter %}
+                            {% include 'legacy/partials/_covoit_card.html.twig' with {
+                                trajet: trajet,
+                                avgNote: avgNotes[trajet.id]|default(0),
+                                driverAvg: driverAverages[trajet.voiture.proprietaire.id]|default(0)
+                            } %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="row g-4">
+                    {% for trajet in covoiturages %}
+                        {% set avgNote = avgNotes[trajet.id]|default(0) %}
+                        {% set energie = trajet.voiture.energie|lower %}
+                        {% set avatar = trajet.voiture.proprietaire.photo ? asset(trajet.voiture.proprietaire.photo) : asset('assets/profile-default.svg') %}
+                        {% set emission = {
+                            'electrique': 0,
+                            'hybride': 60,
+                            'essence': 180,
+                            'diesel': 160,
+                            'gpl': 140
+                        }[energie] ?? 150 %}
+                        <div class="col-md-4">
+                            {% include 'legacy/partials/_covoit_card.html.twig' with {
+                                trajet: trajet,
+                                avgNote: avgNote,
+                                driverAvg: driverAverages[trajet.voiture.proprietaire.id]|default(0)
+                            } %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if currentPage <= 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ path('legacy_covoiturages', filters|merge({'page': currentPage-1 < 1 ? 1 : currentPage-1})) }}">Précédent</a>
+                        </li>
+                        {% for p in 1..totalPages %}
+                            <li class="page-item {% if p == currentPage %}active{% endif %}">
+                                <a class="page-link" href="{{ path('legacy_covoiturages', filters|merge({'page': p})) }}">{{ p }}</a>
+                            </li>
+                        {% endfor %}
+                        <li class="page-item {% if currentPage >= totalPages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ path('legacy_covoiturages', filters|merge({'page': currentPage+1 > totalPages ? totalPages : currentPage+1})) }}">Suivant</a>
+                        </li>
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="listConfirmModal" tabindex="-1" aria-labelledby="listConfirmLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="listConfirmLabel">Confirmer la réservation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Vous allez réserver ce trajet pour <span id="modalPrice"></span> &#129689; (dont 2 &#129689; de commission EcoRide non remboursable). Confirmez-vous ?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <form method="post" id="participateForm">
+            <input type="hidden" name="_csrf_token" id="participateCsrf" value="">
+            <button class="btn btn-success" type="submit">Oui, je confirme</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block legacy_scripts %}
+    {{ parent() }}
+    <script>
+        (function() {
+            const modalEl = document.getElementById('listConfirmModal');
+            if (!modalEl) return;
+            const priceEl = document.getElementById('modalPrice');
+            const formEl = document.getElementById('participateForm');
+            const csrfInput = document.getElementById('participateCsrf');
+            modalEl.addEventListener('show.bs.modal', (event) => {
+                const button = event.relatedTarget;
+                if (!button) return;
+                const slug = button.getAttribute('data-slug');
+                const price = button.getAttribute('data-price');
+                priceEl.textContent = price;
+                formEl.action = "{{ path('legacy_covoiturage_participate', { slug: '__SLUG__' }) }}".replace('__SLUG__', slug);
+                csrfInput.value = "{{ csrf_token('participate_') }}" + slug;
+            });
+            document.querySelectorAll('.btn-participate').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show(btn);
+                });
+            });
+
+            const ecoCheckbox = document.getElementById('eco');
+            const filtersForm = document.getElementById('filtersForm');
+            const loader = document.getElementById('filtersLoader');
+            const resultsOverlay = document.getElementById('resultsOverlay');
+            const showLoader = () => {
+                if (loader) loader.classList.remove('d-none');
+                if (resultsOverlay) {
+                    resultsOverlay.classList.remove('d-none');
+                    resultsOverlay.classList.add('d-flex');
+                }
+            };
+            if (filtersForm) {
+                filtersForm.addEventListener('submit', () => {
+                    showLoader();
+                });
+            }
+            if (ecoCheckbox && filtersForm) {
+                ecoCheckbox.addEventListener('change', () => {
+                    showLoader();
+                    filtersForm.submit();
+                });
+            }
+        })();
+    </script>
+{% endblock %}
+{% endblock %}

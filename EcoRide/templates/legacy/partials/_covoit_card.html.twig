@@ -1,0 +1,65 @@
+{% set energie = trajet.voiture.energie|lower %}
+{% set avatar = trajet.voiture.proprietaire.photo ? asset(trajet.voiture.proprietaire.photo) : asset('assets/profile-default.svg') %}
+{% set emission = {
+    'electrique': 0,
+    'hybride': 60,
+    'essence': 180,
+    'diesel': 160,
+    'gpl': 140
+}[energie] ?? 150 %}
+<div class="card trip-card h-100">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge-soft">{{ trajet.nbPlace }} place(s)</span>
+            <span class="price">{{ trajet.prixPersonne|number_format(0, '', ' ') }} 🪙</span>
+        </div>
+        {% if avgNote is defined and avgNote > 0 %}
+            <div class="mb-2 text-warning">
+                ⭐ {{ avgNote|number_format(1, ',', ' ') }}/5
+            </div>
+        {% endif %}
+        <h5 class="card-title">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</h5>
+        <p class="mb-1 text-muted">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+        <p class="mb-1 d-flex align-items-center gap-2">
+            <img src="{{ avatar }}" alt="Conducteur" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
+            <span>Conducteur :
+                <a href="{{ path('legacy_detail_conducteur', { slug: trajet.voiture.proprietaire.slug }) }}" class="text-decoration-none">
+                    {{ trajet.voiture.proprietaire.prenom }} {{ trajet.voiture.proprietaire.nom }}
+                </a>
+                {% if driverAvg is defined and driverAvg > 0 %}
+                    <span class="text-warning small ms-1">⭐ {{ driverAvg|number_format(1, ',', ' ') }}/5</span>
+                {% endif %}
+            </span>
+        </p>
+        <p class="mb-1 text-muted">Véhicule : {{ trajet.voiture.marque.libelle }} {{ trajet.voiture.modele }} ({{ trajet.voiture.energie }})</p>
+        <div class="d-flex gap-2 mt-2">
+            {% if energie in ['electrique', 'hybride'] %}
+                <span class="badge bg-success text-white"><i class="bi bi-leaf me-1"></i>Écologique</span>
+            {% else %}
+                <span class="badge bg-light text-success">CO₂ ~{{ emission }} g/km</span>
+            {% endif %}
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            {% set statutLabel = trajet.statut == 'ouvert' ? 'à venir' : trajet.statut %}
+            <span class="badge bg-light text-success text-uppercase">{{ statutLabel|capitalize }}</span>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-success btn-sm" href="{{ path('legacy_covoiturage_detail', { slug: trajet.slug }) }}">Détail</a>
+                {% if trajet.nbPlace > 0 and trajet.statut not in ['en cours'] %}
+                    <button class="btn btn-success btn-sm btn-participate" type="button" data-slug="{{ trajet.slug }}" data-price="{{ trajet.prixPersonne|number_format(0, '', ' ') }}">Participer</button>
+                {% elseif trajet.nbPlace <= 0 %}
+                    <span class="badge bg-light text-danger border border-danger fw-semibold d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-slash-circle"></i> Complet
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% if trajet.createdAt %}
+            <p class="mb-0 text-muted small mt-2">Publié le {{ trajet.createdAt|date('d/m/Y \\à H\\hi') }}</p>
+        {% endif %}
+        <div class="mt-2 text-muted small d-flex flex-wrap gap-2">
+            <span class="badge-soft">{{ trajet.fumeur ? 'Fumeur ok' : 'Non-fumeur' }}</span>
+            <span class="badge-soft">{{ trajet.animaux ? 'Animaux ok' : 'Pas d\'animaux' }}</span>
+            <span class="badge-soft">{{ trajet.bagageType ? trajet.bagageType : 'Bagages : n/c' }}</span>
+        </div>
+    </div>
+</div>

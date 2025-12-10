@@ -1,0 +1,146 @@
+{% set hasCars = app.user is defined and app.user and app.user.voitures is defined and app.user.voitures|length > 0 %}
+{% set isLogged = app.user is not null %}
+{% set isAdmin = isLogged and app.user.role is defined and app.user.role == 'admin' %}
+{% set isEmploye = isLogged and app.user.role is defined and app.user.role == 'employe' %}
+{% set userAvatar = isLogged and app.user.photo ? asset(app.user.photo) : asset('assets/profile-default.svg') %}
+
+<nav class="navbar navbar-expand-lg navbar-light navbar-ecoride shadow-sm py-3">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ path('legacy_home') }}">
+            <img src="{{ asset('assets/logo-ecoride-alt.svg') }}" alt="EcoRide" class="navbar-brand-logo">
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Afficher le menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                <li class="nav-item"><a class="nav-link{% if app.request.attributes.get('_route') == 'legacy_home' %} active{% endif %}" href="{{ path('legacy_home') }}">Accueil</a></li>
+                <li class="nav-item"><a class="nav-link{% if app.request.attributes.get('_route') == 'legacy_covoiturages' %} active{% endif %}" href="{{ path('legacy_covoiturages') }}">Covoiturages</a></li>
+                {% if isLogged %}
+                    
+                    <img src="{{ userAvatar }}" alt="Profil" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
+                    <div class="d-flex flex-column">
+                        <a class="nav-link fw-semibold py-0{% if app.request.attributes.get('_route') == 'legacy_my_space' %} active{% endif %}" href="{{ path('legacy_my_space') }}">
+                            Bonjour, {{ app.user.pseudo ?? app.user.email }}
+                        </a>
+                    </div>
+                    <span class="badge-soft p-auto d-inline-flex align-items-center gap-2 js-credit-display" data-credit-base="{{ app.user.credit }}">
+                        <span class="js-credit-value">{{ app.user.credit }}</span>🪙
+                        <button type="button" class="btn btn-outline-success btn-sm rounded-circle credit-topup-btn fw-bold" title="Recharger mes crédits" data-bs-toggle="modal" data-bs-target="#topupModal">
+                            +
+                        </button>
+                    </span>
+                    
+                {% else %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle{% if app.request.attributes.get('_route') in ['legacy_login','legacy_sign_in'] %} active{% endif %}" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Mon Compte</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item{% if app.request.attributes.get('_route') == 'legacy_sign_in' %} active{% endif %}" href="{{ path('legacy_sign_in') }}">Connexion</a></li>
+                            <li><a class="dropdown-item{% if app.request.attributes.get('_route') == 'legacy_login' %} active{% endif %}" href="{{ path('legacy_login') }}">Inscription</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+                <li class="nav-item"><a class="nav-link{% if app.request.attributes.get('_route') == 'legacy_contact' %} active{% endif %}" href="{{ path('legacy_contact') }}">Contact</a></li>
+            </ul>
+            <div class="d-flex mt-3 mt-lg-0 ms-lg-3 align-items-center gap-2">
+                {% if isLogged and hasCars %}
+                    <a class="btn btn-success btn-sm px-3" href="{{ path('legacy_publish_ride') }}">Publier un trajet</a>
+                {% elseif isLogged %}
+                    <a class="btn btn-success btn-sm px-3" href="{{ path('legacy_my_space', { tab: 'cars', _fragment: 'cars' }) }}"
+                       onclick="localStorage.setItem('flashPublishCar', 'Ajoutez un véhicule dans l’onglet Véhicules pour publier un trajet.');">
+                        Publier un trajet
+                    </a>
+                {% else %}
+                    <a class="btn btn-success btn-sm px-3" href="{{ path('legacy_sign_in') }}">Publier un trajet</a>
+                {% endif %}
+                {% if isAdmin %}
+                    <a class="btn btn-outline-primary btn-sm" href="{{ path('legacy_admin_dashboard') }}">Admin</a>
+                {% endif %}
+                {% if isEmploye %}
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ path('legacy_employee_space') }}">Espace employé</a>
+                {% endif %}
+                {% if isLogged %}
+                    <form method="post" action="{{ path('legacy_logout') }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                        <button class="btn btn-outline-success btn-sm" type="submit">Déconnexion</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="modal fade topup-modal" id="topupModal" tabindex="-1" aria-labelledby="topupLabel" aria-hidden="true" style="z-index: 3000;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="topupLabel">Recharger mes crédits</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <form id="topupForm" method="post" action="{{ path('legacy_topup') }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('topup') }}">
+                    <div class="mb-3">
+                        <label for="topupAmount" class="form-label">Montant en crédits</label>
+                        <input type="number" class="form-control" id="topupAmount" name="credits" min="1" value="10">
+                        <div class="form-text">1 crédit = 2 €</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="topupEuros">Montant estimé en €</label>
+                        <input type="text" class="form-control" id="topupEuros" value="20 €" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cardNumber" class="form-label">Carte bancaire</label>
+                        <input type="text" class="form-control" id="cardNumber" placeholder="4242 4242 4242 4242">
+                    </div>
+                    <div class="row g-2">
+                        <div class="col">
+                            <label for="cardExpiry" class="form-label">Expiration</label>
+                            <input type="text" class="form-control" id="cardExpiry" placeholder="MM/AA">
+                        </div>
+                        <div class="col">
+                            <label for="cardCvc" class="form-label">CVC</label>
+                            <input type="text" class="form-control" id="cardCvc" placeholder="123">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="submit" class="btn btn-success" id="topupSubmit" form="topupForm">Payer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.topup-modal { z-index: 3000; }
+.modal-backdrop.topup-backdrop { z-index: 2999 !important; }
+.credit-topup-btn { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 0.9rem; }
+</style>
+<script>
+    (function () {
+        const creditInput = document.getElementById('topupAmount');
+        const eurosDisplay = document.getElementById('topupEuros');
+        const modalEl = document.getElementById('topupModal');
+        const euroRate = 2;
+
+        if (modalEl) {
+            modalEl.addEventListener('show.bs.modal', () => {
+                setTimeout(() => {
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.classList.add('topup-backdrop'));
+                }, 10);
+            });
+        }
+
+        const updateEuros = () => {
+            if (!creditInput || !eurosDisplay) return;
+            const credits = Number(creditInput.value) || 0;
+            eurosDisplay.value = (credits * euroRate).toFixed(2).replace('.', ',') + ' €';
+        };
+
+        if (creditInput) {
+            creditInput.addEventListener('input', updateEuros);
+            updateEuros();
+        }
+
+    })();
+</script>

@@ -1,0 +1,83 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Inscription{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h3 fw-bold mb-1">Devenir membre EcoRide</h1>
+        <p class="mb-0">Rejoignez une communauté engagée pour des trajets plus doux et plus verts.</p>
+    </div>
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="surface-card p-4 p-md-5">
+                <form action="{{ path('legacy_login') }}" method="post" id="form" class="row g-3">
+                    <fieldset>
+                        <legend class="h5 text-success mb-3">Inscrivez-vous</legend>
+                        <div class="mb-3">
+                            <label for="NomInput" class="form-label">Nom</label>
+                            <input class="form-control" type="text" name="name" id="NomInput" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="PrenomInput" class="form-label">Prénom</label>
+                            <input class="form-control" type="text" name="firstname" id="PrenomInput">
+                        </div>
+                        <div class="mb-3">
+                            <label for="PseudoInput" class="form-label">Pseudo</label>
+                            <input class="form-control" type="text" name="pseudo" id="PseudoInput" placeholder="ex : green_rider" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="EmailInput" class="form-label">Adresse mail</label>
+                            <input type="email" class="form-control" id="EmailInput" name="email" placeholder="adresse@mail.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="PasswordInput" class="form-label">Créez un mot de passe</label>
+                            <input type="password" id="PasswordInput" name="password" class="form-control" required>
+                            <div class="invalid-feedback">
+                                Votre mot de passe doit contenir entre 8-20 caractères, composé lettres majuscules, minuscules, chiffres, caracteres spéciaux, et ne doit pas contenir d'espace ou d'emoji.
+                            </div>
+                            <div class="valid-feedback">
+                                Le mot de passe est robuste.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ValidatePasswordInput" class="form-label">Confirmez le mot de passe</label>
+                            <input type="password" id="ValidatePasswordInput" name="confirm_password" class="form-control" required>
+                            <div class="invalid-feedback">
+                                Les mots de passe doivent être identiques.
+                            </div>
+                            <div class="valid-feedback">
+                                La confirmation correspond.
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="passager" checked>
+                            <label class="form-check-label" for="passager">Passager</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="chauffeur">
+                            <label class="form-check-label" for="chauffeur">Chauffeur</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="role" id="chauffeurPassager">
+                            <label class="form-check-label" for="chauffeurPassager">Chauffeur et Passager</label>
+                        </div>
+                    </fieldset>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" id="add" type="submit">S'inscrire</button>
+                        <button class="btn btn-outline-success" id="undo" type="reset">Annuler la saisie</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

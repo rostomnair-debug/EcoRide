@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% block legacy_title %}EcoRide{% endblock %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('legacy/css/style.css') }}">
+    <style>
+        .modal { z-index: 2000; }
+        .modal-backdrop { z-index: 1990; }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% block legacy_scripts %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+    <div class="d-flex flex-column min-vh-100">
+        {% include 'layout/_navbar.html.twig' %}
+        <main class="flex-grow-1">
+            {% block legacy_body %}{% endblock %}
+        </main>
+        {% include 'layout/_footer.html.twig' %}
+    </div>
+{% endblock %}

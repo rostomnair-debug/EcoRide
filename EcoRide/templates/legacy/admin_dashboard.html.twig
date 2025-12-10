@@ -1,0 +1,550 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Admin{% endblock %}
+
+{% block legacy_scripts %}
+    {{ parent() }}
+    <script src="{{ asset('vendor/chartjs/chart.umd.js') }}"></script>
+    <script>
+        (function() {
+            let chartInstances = {};
+            let chartsRendered = false;
+            let toggleListenersBound = false;
+            let tabListenersBound = false;
+            const resizeCharts = () => {
+                Object.values(chartInstances).forEach(inst => {
+                    try { inst.resize(); } catch (e) {}
+                });
+            };
+            const destroyCharts = () => {
+                Object.entries(chartInstances).forEach(([key, inst]) => {
+                    try { inst.destroy(); } catch (e) {}
+                    delete chartInstances[key];
+                });
+                chartsRendered = false;
+            };
+            const configs = [
+                {
+                    el: 'chartTrips',
+                    cfg: {
+                        type: 'line',
+                        data: {
+                            labels: {{ perDayLabels|json_encode|raw }},
+                            datasets: [{
+                                label: 'Covoiturages',
+                                data: {{ perDayValues|json_encode|raw }},
+                                borderColor: '#1A9A5F',
+                                backgroundColor: 'rgba(26,154,95,0.2)',
+                                tension: 0.3,
+                                fill: true,
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            responsive: true,
+                            scales: { y: { beginAtZero: false } } ,
+                            plugins: { legend: { display: false } }
+                        }
+                    }
+                },
+                {
+                    el: 'chartRevenue',
+                    cfg: {
+                        type: 'bar',
+                        data: {
+                            labels: {{ revLabels|json_encode|raw }},
+                            datasets: [{
+                                label: 'Revenus (crédits)',
+                                data: {{ revValues|json_encode|raw }},
+                                backgroundColor: '#6AD39C',
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            responsive: true,
+                            scales: { y: { beginAtZero: false } },
+                            plugins: { legend: { display: false } }
+                        }
+                    }
+                },
+                {
+                    el: 'chartRidesByCity',
+                    cfg: {
+                        type: 'bar',
+                        data: {
+                            labels: {{ ridesByCityLabels|json_encode|raw }},
+                            datasets: [{
+                                label: 'Trajets confirmés',
+                                data: {{ ridesByCityValues|json_encode|raw }},
+                                backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            responsive: true,
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                            plugins: { legend: { display: false }, tooltip: { backgroundColor: '#198754' } }
+                        }
+                    }
+                },
+                {
+                    el: 'chartEcoSplit',
+                    cfg: {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Électrique & hybride', 'Thermique'],
+                            datasets: [{
+                                data: {{ ecoSplitValues|json_encode|raw }},
+                                backgroundColor: ['rgba(13, 110, 253, 0.8)', 'rgba(255, 193, 7, 0.8)'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            responsive: true,
+                            cutout: '65%',
+                            plugins: { legend: { position: 'right', labels: { usePointStyle: true } } }
+                        }
+                    }
+                },
+                {
+                    el: 'chartMonthly',
+                    cfg: {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'],
+                            datasets: [{
+                                label: 'Inscriptions',
+                                data: {{ monthlyValues|json_encode|raw }},
+                                fill: true,
+                                tension: 0.35,
+                                borderColor: 'rgba(255, 193, 7, 1)',
+                                backgroundColor: 'rgba(255, 193, 7, 0.25)',
+                                pointBackgroundColor: '#ffc107',
+                                pointRadius: 4
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            responsive: true,
+                            scales: { y: { beginAtZero: true } },
+                            plugins: { legend: { display: false } }
+                        }
+                    }
+                },
+            ];
+
+            const renderChart = (el, cfg, retry = 0) => {
+                if (typeof Chart === 'undefined') {
+                    if (retry < 3) return setTimeout(() => renderChart(el, cfg, retry + 1), 150);
+                    console.warn('Chart.js non chargé : vérifier public/vendor/chartjs/chart.umd.js');
+                    return;
+                }
+                const wrap = document.getElementById(el + 'Wrap') || document.getElementById(el)?.parentElement;
+                if (!wrap) return;
+                wrap.innerHTML = `<canvas id="${el}" height="220"></canvas>`;
+                const ctx = wrap.querySelector('canvas');
+                if (!ctx) return;
+                if (chartInstances[el]) {
+                    try { chartInstances[el].destroy(); } catch (e) {}
+                }
+                try {
+                    chartInstances[el] = new Chart(ctx, cfg);
+                } catch (e) {
+                    console.error('Erreur Chart.js', el, e);
+                }
+            };
+
+            const runCharts = () => {
+                if (chartsRendered) {
+                    resizeCharts();
+                    return;
+                }
+                chartsRendered = true;
+                configs.forEach(({ el, cfg }) => renderChart(el, cfg, 0));
+                resizeCharts();
+            };
+
+            const showTabFromParams = () => {
+                const params = new URLSearchParams(window.location.search);
+                const currentTab = params.get('tab') || 'stats';
+                const trigger = document.querySelector(`#adminTabs button[data-bs-target="#${currentTab}"]`);
+                if (trigger) {
+                    new bootstrap.Tab(trigger).show();
+                }
+            };
+
+            const activateTabPersist = () => {
+                showTabFromParams();
+                if (tabListenersBound) return;
+                tabListenersBound = true;
+                document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
+                    btn.addEventListener('shown.bs.tab', function(e) {
+                        const targetId = e.target.getAttribute('data-bs-target')?.replace('#', '') || 'stats';
+                        const url = new URL(window.location);
+                        url.searchParams.set('tab', targetId);
+                        history.replaceState({}, '', url);
+                        if (targetId === 'stats') runCharts();
+                    });
+                });
+            };
+
+            const updateToggleLabels = () => {
+                document.querySelectorAll('.chart-toggle').forEach(btn => {
+                    const target = btn.getAttribute('data-bs-target');
+                    const collapseEl = target ? document.querySelector(target) : null;
+                    const expanded = collapseEl?.classList.contains('show');
+                    const icon = btn.querySelector('i.bi');
+                    const label = btn.querySelector('span');
+                    if (icon) {
+                        icon.classList.remove('bi-chevron-down', 'bi-chevron-up');
+                        icon.classList.add(expanded ? 'bi-chevron-up' : 'bi-chevron-down');
+                    }
+                    if (label) {
+                        label.textContent = expanded ? 'Masquer' : 'Afficher';
+                    } else {
+                        btn.textContent = expanded ? 'Masquer' : 'Afficher';
+                    }
+                });
+            };
+
+            const bindToggleListeners = () => {
+                if (toggleListenersBound) return;
+                toggleListenersBound = true;
+                document.querySelectorAll('.chart-toggle').forEach(btn => {
+                    const target = btn.getAttribute('data-bs-target');
+                    if (target) {
+                        const colEl = document.querySelector(target);
+                        colEl?.addEventListener('shown.bs.collapse', () => {
+                            updateToggleLabels();
+                            setTimeout(resizeCharts, 150);
+                        });
+                        colEl?.addEventListener('hidden.bs.collapse', updateToggleLabels);
+                    }
+                    btn.addEventListener('click', () => {
+                        setTimeout(() => {
+                            updateToggleLabels();
+                        }, 150);
+                    });
+                });
+            };
+
+            const start = () => {
+                activateTabPersist();
+                updateToggleLabels();
+                bindToggleListeners();
+            };
+
+            const bootstrapCharts = () => {
+                start();
+                runCharts();
+            };
+
+            if (document.readyState === 'complete') {
+                bootstrapCharts();
+            } else {
+                document.addEventListener('DOMContentLoaded', bootstrapCharts, { once: true });
+                window.addEventListener('load', bootstrapCharts, { once: true });
+            }
+            document.addEventListener('turbo:load', () => {
+                destroyCharts();
+                bootstrapCharts();
+            });
+            document.addEventListener('turbo:before-cache', destroyCharts);
+            // Réactivation si retour cache navigateur (back/forward)
+            window.addEventListener('pageshow', (e) => {
+                if (e.persisted) {
+                    destroyCharts();
+                    bootstrapCharts();
+                    setTimeout(resizeCharts, 150);
+                }
+            });
+        })();
+    </script>
+{% endblock %}
+
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h3 fw-bold mb-1">Dashboard Admin</h1>
+        <p class="mb-0">Gestion des comptes et synthèse des covoiturages.</p>
+    </div>
+    <ul class="nav nav-tabs mt-4" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">Statistiques</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="employees-tab" data-bs-toggle="tab" data-bs-target="#employees" type="button" role="tab">Employés</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabsContent">
+        <div class="tab-pane fade show active" id="stats" role="tabpanel">
+            <div class="alert alert-info d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>Astuce : rafraîchissez la page si les graphiques ne s’affichent pas, pour recharger toutes les données.</span>
+            </div>
+            <div class="row g-4 mt-3">
+                <div class="col-md-3">
+                    <div class="surface-card p-3 h-100">
+                        <h6 class="fw-bold mb-1">Revenus 7j</h6>
+                        <p class="display-6 text-success mb-0">{{ revenue|number_format(2, ',', ' ') }} crédits</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="surface-card p-3 h-100">
+                        <h6 class="fw-bold mb-1">Utilisateurs</h6>
+                        <p class="mb-1">Total : <strong>{{ totalUsers }}</strong></p>
+                        <p class="mb-0">Employés : <strong>{{ employees }}</strong> · Suspendus : <strong>{{ suspended }}</strong></p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="surface-card p-3 h-100">
+                        <h6 class="fw-bold mb-1">Covoiturages</h6>
+                        <p class="mb-1">Total : <strong>{{ totalCovoits }}</strong></p>
+                        <p class="mb-0">À venir : {{ covoitsAVenir }} · En cours : {{ covoitsEnCours }} · Terminés : {{ covoitsTermines }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="surface-card p-3 h-100">
+                        <h6 class="fw-bold mb-1">Avis en attente</h6>
+                        <p class="display-6 text-success mb-0">{{ pendingAvisCount }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 mt-3">
+                <div class="col-md-6">
+                    <div class="surface-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Covoiturages par jour (7j)</h5>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseTrips" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="collapseTrips">
+                            <div id="chartTripsWrap">
+                                <canvas id="chartTrips" height="220"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="surface-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Revenus par jour (7j)</h5>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseRevenue" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="collapseRevenue">
+                            <div id="chartRevenueWrap">
+                                <canvas id="chartRevenue" height="220"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 mt-3">
+                <div class="col-md-6">
+                    <div class="surface-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Trajets confirmés (villes)</h5>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseCity" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="collapseCity">
+                            <div id="chartRidesByCityWrap">
+                                <canvas id="chartRidesByCity" height="220"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="surface-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Répartition écologique</h5>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseEco" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="collapseEco">
+                            <div id="chartEcoSplitWrap">
+                                <canvas id="chartEcoSplit" height="220"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="surface-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Inscriptions mensuelles</h5>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseMonthly" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="collapseMonthly">
+                            <div id="chartMonthlyWrap">
+                                <canvas id="chartMonthly" height="220"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="surface-card p-4 mt-4">
+                <h5 class="fw-bold mb-3">Covoiturages récents</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-2 mb-3">
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="pageCovoits" value="1">
+                            <label class="form-label mb-0 small text-muted">Trier par</label>
+                            <select name="covoitSort" class="form-select form-select-sm" style="max-width: 130px;">
+                                <option value="dateDepart" {% if covoitSort == 'dateDepart' %}selected{% endif %}>Date</option>
+                                <option value="nbPlace" {% if covoitSort == 'nbPlace' %}selected{% endif %}>Places restantes</option>
+                                <option value="statut" {% if covoitSort == 'statut' %}selected{% endif %}>Statut</option>
+                            </select>
+                            <select name="covoitDir" class="form-select form-select-sm" style="max-width: 160px;">
+                                <option value="desc" {% if covoitDir == 'desc' %}selected{% endif %}>Décroissant</option>
+                                <option value="asc" {% if covoitDir == 'asc' %}selected{% endif %}>Croissant</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">Appliquer</button>
+                        </form>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary chart-toggle d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#collapseLatestCovoits" aria-expanded="false">
+                        <i class="bi bi-chevron-down"></i><span>Afficher</span>
+                    </button>
+                </div>
+                <div class="collapse" id="collapseLatestCovoits">
+                    {% if latestCovoits is empty %}
+                        <div class="card-quiet">Aucun covoiturage récent.</div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Trajet</th>
+                                        <th>Date</th>
+                                        <th>Conducteur</th>
+                                        <th>Places</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in latestCovoits %}
+                                        <tr>
+                                            <td>{{ c.lieuDepart }} → {{ c.lieuArrivee }}</td>
+                                            <td>{{ c.dateDepart|date('d/m/Y') }} · {{ c.heureDepart|date('H\\hi') }}</td>
+                                            <td>{{ c.conducteurPrenom ?? c.voiture.proprietaire.prenom }} {{ c.conducteurNom ?? c.voiture.proprietaire.nom }}</td>
+                                            <td>{{ c.nbPlace }}</td>
+                                            <td><span class="badge bg-light text-success">{{ c.statut|capitalize }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if covoitsTotalPages > 1 %}
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    <li class="page-item {% if covoitsCurrentPage <= 1 %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_admin_dashboard', {'pageCovoits': covoitsCurrentPage-1 < 1 ? 1 : covoitsCurrentPage-1}) }}">Précédent</a>
+                                    </li>
+                                    {% for p in 1..covoitsTotalPages %}
+                                        <li class="page-item {% if p == covoitsCurrentPage %}active{% endif %}">
+                                            <a class="page-link" href="{{ path('legacy_admin_dashboard', {'pageCovoits': p}) }}">{{ p }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if covoitsCurrentPage >= covoitsTotalPages %}disabled{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_admin_dashboard', {'pageCovoits': covoitsCurrentPage+1 > covoitsTotalPages ? covoitsTotalPages : covoitsCurrentPage+1}) }}">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="employees" role="tabpanel">
+            <div class="surface-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Employés</h5>
+                    <form class="d-flex gap-2 align-items-center flex-wrap" method="get">
+                        <input type="hidden" name="tab" value="employees">
+                        <input type="hidden" name="pageEmployees" value="1">
+                        <div class="input-group input-group-sm" style="min-width: 280px;">
+                            <input type="text" class="form-control" name="employeeSearch" value="{{ employeeSearch }}" placeholder="Rechercher pseudo / email">
+                            <button class="btn btn-outline-secondary" type="submit" title="Rechercher">
+                                <i class="bi bi-search"></i><span class="visually-hidden">Rechercher</span>
+                            </button>
+                            <a class="btn btn-success btn-sm" href="{{ path('legacy_admin_add_employee_form') }}" title="Ajouter un employé">
+                                <i class="bi bi-person-plus-fill"></i><span class="visually-hidden">Ajouter un employé</span>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                {% if employeesList is empty %}
+                    <div class="card-quiet">Aucun employé pour le moment.</div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Pseudo</th>
+                                    <th>Email</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in employeesList %}
+                                    <tr>
+                                <td>{{ e.pseudo ?? e.prenom }}</td>
+                                <td class="text-muted small">{{ e.email }}</td>
+                                <td>{% if e.suspended %}<span class="badge bg-danger">Suspendu</span>{% else %}<span class="badge bg-success">Actif</span>{% endif %}</td>
+                                <td class="d-flex gap-2 flex-wrap">
+                                    <a class="btn btn-outline-primary btn-sm" href="{{ path('legacy_admin_edit_employee', { id: e.id }) }}" title="Modifier">
+                                        <i class="bi bi-pencil-square"></i><span class="visually-hidden">Modifier</span>
+                                    </a>
+                                    <form method="post" action="{{ path('legacy_admin_toggle_suspend', { id: e.id }) }}">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('suspend_' ~ e.id) }}">
+                                        <button class="btn btn-outline-secondary btn-sm" type="submit" title="{{ e.suspended ? 'Réactiver' : 'Suspendre' }}">
+                                            {% if e.suspended %}<i class="bi bi-play-circle"></i>{% else %}<i class="bi bi-pause-circle"></i>{% endif %}
+                                            <span class="visually-hidden">{{ e.suspended ? 'Réactiver' : 'Suspendre' }}</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('legacy_admin_delete_employee', { id: e.id }) }}" onsubmit="return confirm('Supprimer cet employé ?');">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('delete_' ~ e.id) }}">
+                                        <button class="btn btn-outline-danger btn-sm" type="submit" title="Supprimer">
+                                            <i class="bi bi-trash"></i><span class="visually-hidden">Supprimer</span>
+                                        </button>
+                                    </form>
+                                </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if employeesTotalPages > 1 %}
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center">
+                                <li class="page-item {% if employeesCurrentPage <= 1 %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ path('legacy_admin_dashboard', {'pageEmployees': employeesCurrentPage-1 < 1 ? 1 : employeesCurrentPage-1}) }}">Précédent</a>
+                                </li>
+                                {% for p in 1..employeesTotalPages %}
+                                    <li class="page-item {% if p == employeesCurrentPage %}active{% endif %}">
+                                        <a class="page-link" href="{{ path('legacy_admin_dashboard', {'pageEmployees': p}) }}">{{ p }}</a>
+                                    </li>
+                                {% endfor %}
+                                <li class="page-item {% if employeesCurrentPage >= employeesTotalPages %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ path('legacy_admin_dashboard', {'pageEmployees': employeesCurrentPage+1 > employeesTotalPages ? employeesTotalPages : employeesCurrentPage+1}) }}">Suivant</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,351 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - {{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="h4 fw-bold mb-1">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</h1>
+                <p class="mb-0">{{ trajet.dateDepart|date('d/m/Y') }} · {{ trajet.heureDepart|date('H\\hi') }}</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <span class="badge-soft">{{ trajet.nbPlace }} place(s)</span>
+                <span class="badge bg-light text-success text-uppercase">{{ trajet.statut|capitalize }}</span>
+                {% if trajet.voiture.energie|lower == 'electrique' %}
+                    <span class="badge bg-success text-white"><i class="bi bi-lightning-charge"></i> Écologique</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% set energie = trajet.voiture.energie|lower %}
+    {% set emission = {
+        'electrique': 0,
+        'hybride': 60,
+        'essence': 180,
+        'diesel': 160,
+        'gpl': 140
+    }[energie] ?? 150 %}
+    {% set driverAvatar = trajet.voiture.proprietaire.photo ? asset(trajet.voiture.proprietaire.photo) : asset('assets/profile-default.svg') %}
+
+    <div class="surface-card p-4 p-md-5">
+        <div class="row g-4">
+            <div class="col-md-7">
+                <h5 class="fw-bold mb-3">Trajet</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><strong>Départ :</strong> {{ trajet.lieuDepart }} le {{ trajet.dateDepart|date('d/m/Y') }} à {{ trajet.heureDepart|date('H\\hi') }}</li>
+                    <li class="mb-2"><strong>Arrivée :</strong> {{ trajet.lieuArrivee }} le {{ trajet.dateArrivee|date('d/m/Y') }} à {{ trajet.heureArrivee|date('H\\hi') }}</li>
+                    <li class="mb-2"><strong>Prix par place :</strong> {{ trajet.prixPersonne|number_format(0, '', ' ') }} &#129689;</li>
+                    <li class="mb-2"><strong>Places restantes :</strong> {{ trajet.nbPlace }}</li>
+                    {% if avgNote > 0 %}
+                        <li class="mb-2"><strong>Note moyenne :</strong> ⭐ {{ avgNote|number_format(1, ',', ' ') }}/5</li>
+                    {% endif %}
+                    {% if trajet.createdAt %}
+                        <li class="mb-2 text-muted small"><strong>Publié le :</strong> {{ trajet.createdAt|date('d/m/Y \\à H\\hi') }}</li>
+                    {% endif %}
+                </ul>
+                <section class="container my-4">
+                    <div class="surface-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Itinéraire</h5>
+                            <span class="badge bg-light text-dark">{{ trajet.lieuDepart }} → {{ trajet.lieuArrivee }}</span>
+                        </div>
+                        <div id="trajet-map" style="height: 320px; border-radius: 8px; overflow: hidden;"></div>
+                    </div>
+                </section>
+                {% block legacy_scripts %}
+                    {{ parent() }}
+                    <link rel="stylesheet" href="{{ asset('vendor/leaflet/leaflet.css') }}">
+                    <script src="{{ asset('vendor/leaflet/leaflet.js') }}"></script>
+                    <script>
+                        const initTrajetMap = function(retry = 0) {
+                            const mapEl = document.getElementById('trajet-map');
+                            if (!mapEl || typeof L === 'undefined') {
+                                if (retry < 8) {
+                                    setTimeout(() => initTrajetMap(retry + 1), 200);
+                                }
+                                return;
+                            }
+                            const cities = {
+                                {% set cityMap = {
+                                    'Paris': [48.8566, 2.3522], 'Marseille':[43.2965,5.3698], 'Lyon':[45.764,4.8357],
+                                    'Toulouse':[43.6047,1.4442], 'Nice':[43.7102,7.262], 'Nantes':[47.2184,-1.5536],
+                                    'Strasbourg':[48.5734,7.7521], 'Montpellier':[43.6109,3.8772], 'Bordeaux':[44.8378,-0.5792],
+                                    'Lille':[50.6292,3.0573], 'Rennes':[48.1173,-1.6778], 'Reims':[49.2583,4.0317],
+                                    'Le Havre':[49.4944,0.1079], 'Saint-Étienne':[45.4397,4.3872], 'Toulon':[43.1242,5.928],
+                                    'Grenoble':[45.1885,5.7245], 'Dijon':[47.322,5.0415], 'Angers':[47.4784,-0.5632],
+                                    'Nîmes':[43.8367,4.3601], 'Villeurbanne':[45.764,4.8847], 'Clermont-Ferrand':[45.7772,3.087],
+                                    'Aix-en-Provence':[43.5297,5.4474], 'Brest':[48.3904,-4.4861], 'Amiens':[49.8941,2.2957]
+                                } %}
+                                {% for name, coord in cityMap %}
+                                "{{ name|e('js') }}": [{{ coord[0] }}, {{ coord[1] }}],
+                                {% endfor %}
+                            };
+                            const depart = "{{ trajet.lieuDepart|e('js') }}";
+                            const arrivee = "{{ trajet.lieuArrivee|e('js') }}";
+                            const departCoord = cities[depart] || [46.6, 1.88];
+                            const arriveeCoord = cities[arrivee] || [46.6, 1.88];
+                            const map = L.map(mapEl, { zoomControl: true }).setView([(departCoord[0]+arriveeCoord[0])/2, (departCoord[1]+arriveeCoord[1])/2], 6);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                maxZoom: 18,
+                                attribution: '© OpenStreetMap'
+                            }).addTo(map);
+                            const line = L.polyline([departCoord, arriveeCoord], { color: '#1a9a5f', weight: 4 }).addTo(map);
+                            map.fitBounds(line.getBounds(), { padding: [20, 20] });
+                            setTimeout(() => map.invalidateSize(), 150);
+                            setTimeout(() => map.invalidateSize(), 500);
+                        };
+                        const startMap = () => {
+                            initTrajetMap();
+                            setTimeout(initTrajetMap, 150);
+                            setTimeout(initTrajetMap, 400);
+                        };
+                        if (document.readyState === 'complete') {
+                            startMap();
+                        } else {
+                            document.addEventListener('DOMContentLoaded', startMap);
+                            window.addEventListener('load', startMap);
+                        }
+                        window.addEventListener('pageshow', (e) => {
+                            if (e.persisted) {
+                                window.location.reload();
+                            }
+                        });
+                    </script>
+                {% endblock %}
+            </div>
+            <div class="col-md-5">
+                <div class="surface-soft p-3">
+                    <h6 class="fw-bold">Conducteur</h6>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <img src="{{ driverAvatar }}" alt="Conducteur" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
+                        <div>
+                            <p class="mb-0">
+                                <a href="{{ path('legacy_detail_conducteur', { slug: trajet.voiture.proprietaire.slug }) }}" class="text-decoration-none">
+                                    {{ trajet.voiture.proprietaire.prenom }} {{ trajet.voiture.proprietaire.nom }}
+                                </a>
+                            </p>
+                            {% if driverAvg is defined and driverAvg > 0 %}
+                                <p class="mb-0 text-warning small">⭐ {{ driverAvg|number_format(1, ',', ' ') }}/5</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if trajet.voiture.proprietaire.verifie %}
+                        <span class="badge bg-success"><i class="bi bi-patch-check-fill me-1"></i> Vérifié</span>
+                    {% endif %}
+                </div>
+                <div class="surface-soft p-3 mt-3">
+                    <h6 class="fw-bold">Véhicule</h6>
+                    <p class="mb-1">{{ trajet.voiture.marque.libelle }} {{ trajet.voiture.modele }}</p>
+                    <p class="text-muted small mb-1">{{ trajet.voiture.energie|capitalize }} · {{ trajet.voiture.couleur }}</p>
+                    <p class="text-muted small mb-0">Immatriculation : {{ trajet.voiture.immatriculation }}</p>
+                    <div class="mt-2">
+                        {% if energie in ['electrique', 'hybride'] %}
+                            <span class="badge bg-success text-white"><i class="bi bi-leaf me-1"></i>Écologique</span>
+                        {% else %}
+                            <span class="badge bg-light text-success">CO₂ ~{{ emission }} g/km</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="surface-soft p-3 mt-3">
+                    <h6 class="fw-bold">Préférences</h6>
+                    <ul class="list-unstyled mb-0 text-muted small">
+                        <li class="mb-1"><strong>Fumeur :</strong> {{ trajet.isFumeur() ? 'Autorisé' : 'Non-fumeur' }}</li>
+                        <li class="mb-1"><strong>Animaux :</strong> {{ trajet.isAnimaux() ? 'Acceptés' : 'Non acceptés' }}</li>
+                        <li class="mb-0"><strong>Bagages :</strong> {{ trajet.getBagageType() ? trajet.getBagageType() : 'Non précisé' }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+            <div class="d-flex flex-column">
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="fw-bold h5 mb-0 text-success">{{ trajet.prixPersonne|number_format(0, '', ' ') }} 🪙</span>
+                    <span class="text-muted">par place</span>
+                </div>
+                <small class="text-muted">Dont 2 🪙 de commission EcoRide</small>
+            </div>
+            {% if isDriver and trajet.statut == 'à venir' %}
+                <form method="post" action="{{ path('legacy_covoiturage_start', { slug: trajet.slug }) }}" class="d-flex gap-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('start_' ~ trajet.slug) }}">
+                    <button class="btn btn-success" type="submit">Démarrer le trajet</button>
+                    <button class="btn btn-outline-danger" type="submit" formaction="{{ path('legacy_covoiturage_cancel', { slug: trajet.slug }) }}" onclick="return confirm('Annuler ce trajet ? Les participants seront remboursés.');">Annuler</button>
+                    <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Retour</a>
+                </form>
+            {% elseif isDriver and trajet.statut == 'en cours' %}
+                <form method="post" action="{{ path('legacy_covoiturage_finish', { slug: trajet.slug }) }}" class="d-flex gap-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('finish_' ~ trajet.slug) }}">
+                    <button class="btn btn-success" type="submit">Arrivée à destination</button>
+                    <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Retour</a>
+                </form>
+            {% elseif currentUser and trajet.participants.contains(currentUser) and trajet.statut in ['à venir', 'ouvert'] %}
+                <form method="post" action="{{ path('legacy_covoiturage_cancel_reservation', { slug: trajet.slug }) }}" class="d-flex gap-2">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('cancel_reservation_' ~ trajet.slug) }}">
+                    <button class="btn btn-outline-danger" type="submit">Annuler la réservation</button>
+                    <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Retour</a>
+                </form>
+            {% elseif isDriver and trajet.statut == 'terminé' and trajet.participants is not empty %}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#ratePassengersModal">Noter les passagers</button>
+                    <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Retour</a>
+                </div>
+            {% elseif trajet.nbPlace > 0 and trajet.statut not in ['en cours'] %}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#confirmModal">Participer</button>
+                    <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Retour</a>
+                </div>
+            {% else %}
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge bg-light text-danger border border-danger fw-semibold d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-slash-circle"></i> Complet
+                    </span>
+                    <a class="btn btn-outline-success" href="{{ path('legacy_covoiturages') }}">Retour</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if isDriver and trajet.statut == 'terminé' and trajet.participants is not empty %}
+        <div class="modal fade" id="ratePassengersModal" tabindex="-1" aria-labelledby="ratePassengersLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ratePassengersLabel">Noter les passagers</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <form method="post" action="{{ path('legacy_covoiturage_rate_passengers', { slug: trajet.slug }) }}">
+                        <div class="modal-body">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('rate_passengers_' ~ trajet.slug) }}">
+                            <div class="row g-3">
+                                {% for p in trajet.participants %}
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3 h-100">
+                                            {% set avatar = p.photo ? asset(p.photo) : asset('assets/profile-default.svg') %}
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <img src="{{ avatar }}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;" alt="Passager">
+                                                <div>
+                                                    <div class="fw-semibold">{{ p.pseudo ?? p.prenom ~ ' ' ~ p.nom }}</div>
+                                                    {% if p.credit is defined %}
+                                                        <div class="text-muted small">Crédits : {{ p.credit }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <label class="form-label small mb-1">Note</label>
+                                            <select class="form-select form-select-sm" name="notes[{{ p.id }}]">
+                                                <option value="">Ne pas noter</option>
+                                                {% for i in 1..5 %}
+                                                    <option value="{{ i }}">{{ i }} ⭐</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-success">Envoyer les notes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if currentUser and trajet.statut == 'terminé' and trajet.participants is not empty and trajet.participants.contains(currentUser) %}
+    <div class="surface-card p-4 mt-4">
+        <h5 class="fw-bold mb-3">Laisser un avis</h5>
+        <form method="post" action="{{ path('legacy_covoiturage_avis', { slug: trajet.slug }) }}" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label" for="note">Note</label>
+                <select name="note" id="note" class="form-select" required>
+                    <option value="">Sélectionnez</option>
+                    {% for i in 1..5 %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-9">
+                <label class="form-label" for="commentaire">Commentaire</label>
+                <textarea class="form-control" id="commentaire" name="commentaire" rows="2" placeholder="Votre retour"></textarea>
+            </div>
+            <div class="col-12 d-flex justify-content-end">
+                <button class="btn btn-success" type="submit">Envoyer</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if trajet.avis is not empty %}
+        <div class="surface-card p-4 mt-4">
+            <h5 class="fw-bold mb-3">Avis</h5>
+            <div class="list-group list-group-flush">
+                {% for avis in trajet.avis %}
+                    {% if avis.statut == 'valide' %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-semibold">Note : ⭐ {{ avis.note }}</span>
+                                <span class="badge bg-light text-success">{{ avis.statut|capitalize }}</span>
+                            </div>
+                            <p class="mb-1 text-muted small">{{ avis.commentaire }}</p>
+                            <p class="mb-0 text-muted small">Auteur : {{ avis.auteurPseudo ?? avis.auteurPrenom ?? 'Anonyme' }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if currentUser and (trajet.participants.contains(currentUser) or trajet.voiture.proprietaire.id == currentUser.id) %}
+        <div class="surface-card p-4 mt-4">
+            <h5 class="fw-bold mb-3">Signaler ce trajet</h5>
+            <form method="post" action="{{ path('legacy_covoiturage_signal', { slug: trajet.slug }) }}" class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="motifSignal">Motif</label>
+                    <textarea id="motifSignal" name="motif" class="form-control" rows="2" placeholder="Décrivez le problème"></textarea>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button class="btn btn-outline-danger" type="submit">Signaler</button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if trajet.nbPlace > 0 %}
+        <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmModalLabel">Confirmer la réservation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Vous allez réserver ce trajet pour {{ trajet.prixPersonne|number_format(0, '', ' ') }} &#129689; (dont 2 &#129689; de commission EcoRide non remboursable). Confirmez-vous ?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <form method="post" action="{{ path('legacy_covoiturage_participate', { slug: trajet.slug }) }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('participate_' ~ trajet.slug) }}">
+                            <button class="btn btn-success" type="submit">Oui, je confirme</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</section>
+
+
+
+{% endblock %}

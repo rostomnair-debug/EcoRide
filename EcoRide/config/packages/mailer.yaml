@@ -1,0 +1,5 @@
+framework:
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
+        # Envoi direct sans passer par Messenger pour que les mails partent immédiatement vers Mailpit
+        message_bus: false

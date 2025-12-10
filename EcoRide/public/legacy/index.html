@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoRide - Covoiturage écologique</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/villes.js"></script>
+  <script defer src="js/trajets.js"></script>
+  <script defer src="js/script.js"></script>
+
+  
+</head>
+<body class="min-vh-100 d-flex flex-column justify-content-between" media="(max-width: 1000px)" style="background-image: url('img/trees-7358969_640.jpg'); opacity: 0.9; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; position: relative; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;">
+  <!-- Navigation -->
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="assets/logo-ecoride-alt.svg" alt="EcoRide" class="navbar-brand-logo"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link active" href="index.html">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="covoiturages.html">Covoiturages</a></li>
+            
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="login.html" role="button" aria-expanded="false">Mon Compte</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="sign_in.html">Connexion</a></li>
+                <li><a class="dropdown-item" href="login.html">Inscription</a></li>
+              </ul>
+            </li>
+
+            <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+  
+  <!-- Section Hero / Recherche -->
+  <main class="container my-5">
+    
+
+    <div class="text-center mb-4">
+      <h1 class="text-white fw-bold">Voyagez plus vert avec <span class="text-success">EcoRide 🌱</span></h1>
+        <div id="heroCarousel" class="carousel slide hero-carousel mb-4" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Présentation EcoRide"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Engagement écologique"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Notre équipe"></button>
+          </div>
+          <div class="carousel-inner rounded shadow">
+            <div class="carousel-item active" data-bs-interval="6000">
+              <img src="assets/carousel-company.svg" class="d-block w-100 img-fluid" alt="Illustration d'une main tenant un smartphone affichant l'application EcoRide">
+              <div class="carousel-caption">
+                <h3 class="fw-bold">Pilotez vos trajets depuis l'app</h3>
+                <p>Réservez et suivez vos covoiturages EcoRide en quelques gestes sur votre téléphone.</p>
+              </div>
+            </div>
+            <div class="carousel-item" data-bs-interval="6000">
+              <img src="assets/carousel-ecology.svg" class="d-block w-100" alt="Illustration d'une voiture émettant de l'air pur et des feuilles">
+              <div class="carousel-caption">
+                <h3 class="fw-bold">Engagement écologique</h3>
+                <p>Grâce au covoiturage, nos trajets partagés limitent les émissions et rendent la route plus respirable.</p>
+              </div>
+            </div>
+            <div class="carousel-item" data-bs-interval="6000">
+              <img src="assets/carousel-team.svg" class="d-block w-100" alt="Illustration d'un groupe de collaborateurs EcoRide heureux au bureau">
+              <div class="carousel-caption">
+                <h3 class="fw-bold">Une équipe heureuse et engagée</h3>
+                <p>Nos experts EcoRide unissent leurs forces au quotidien pour offrir la meilleure expérience de covoiturage.</p>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon " aria-hidden="true"></span>
+            <span class="visually-hidden">Précédent</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Suivant</span>
+          </button>
+        </div>
+
+      <h4 class="text-white fw-bold">Trouvez des covoiturages écologiques et économiques pour votre voyage.</h4>
+     
+    </div>
+
+    <!-- Barre de recherche -->
+    <form class="mt-2 row g-3 shadow p-4 rounded bg-light">
+      <!-- Sélecteur de ville de départ -->
+      <div class="col-md-3">
+        <label for="depart" class="form-label">Départ</label>
+        <select id="depart" class="form-select">
+          <option value="" selected disabled>Sélectionnez une ville</option>
+        </select>
+      </div>
+
+      <!-- Sélecteur de ville d'arrivée -->
+      <div class="col-md-3">
+        <label for="arrivee" class="form-label">Arrivée</label>
+        <select id="arrivee" class="form-select">
+          <option value="" selected disabled>Sélectionnez une ville</option>
+          
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="date" class="form-label">Date</label>
+        <input type="date" id="date" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label for="filtrePrix" class="form-label">Prix maximum</label>
+        <input type="number" id="filtrePrix" class="form-control" placeholder="Ex : 20 crédits">
+      </div>
+      <div class="col-md-3">
+        <label for="filtreDuree" class="form-label">Durée max (h)</label>
+        <input type="number" id="filtreDuree" class="form-control" placeholder="Ex : 5">
+      </div>
+      <div class="col-md-3">
+        <label for="filtreNote" class="form-label">Note minimale</label>
+        <select id="filtreNote" class="form-select">
+          <option value="">Toutes</option>
+          <option value="3">≥ 3 ⭐</option>
+          <option value="4">≥ 4 ⭐</option>
+          <option value="5">5 ⭐ uniquement</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="filtrePlaces" class="form-label">Places disponibles (min.)</label>
+        <select class="form-select" id="filtrePlaces">
+          <option value="0" selected>Toutes</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check pt-4">
+          <input class="form-check-input" type="checkbox" id="filtreEco">
+          <label class="form-check-label" for="filtreEco">
+            🌱 Voyage écologique
+          </label>
+        </div>
+      </div>
+      <div class="col-md-1 d-flex align-items-center pt-4">
+        <button id="rechercher" type="submit" class="btn btn-success w-auto">Chercher</button>
+      </div>
+    </form>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <p class="mb-1">© 2025 EcoRide - Tous droits réservés</p>
+    <p>
+      <a href="mailto:contact@ecoride.com" class="text-white">contact@ecoride.com</a> | 
+      <a href="mentions-legales.html" class="text-white">Mentions légales</a>
+    </p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

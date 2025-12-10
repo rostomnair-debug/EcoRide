@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 80" role="img" aria-labelledby="title desc">
+  <title id="title">EcoRide logo</title>
+  <desc id="desc">Logo associant une épingle de localisation, un véhicule stylisé et une feuille pour symboliser le covoiturage écologique</desc>
+  <defs>
+    <linearGradient id="pinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5ed07b" />
+      <stop offset="100%" stop-color="#1d8b49" />
+    </linearGradient>
+    <linearGradient id="leafStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6dd57a" />
+      <stop offset="100%" stop-color="#2da35b" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(12 6)">
+    <path d="M36 0C19 0 4 15 4 32c0 8.3 3.2 16 8.9 22.1L36 84l23.1-29.9C64.8 48 68 40.3 68 32 68 15 53 0 36 0z" fill="url(#pinGradient)" stroke="#0f4c2c" stroke-width="2.5" stroke-linejoin="round" />
+    <g transform="translate(12 15)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 28h24" stroke="#0f4c2c" stroke-width="2" />
+      <path d="M8 18c0-6.6 5.4-12 12-12h8c6.6 0 12 5.4 12 12v6H8v-6z" fill="#f4fff7" stroke="#0f4c2c" stroke-width="2" />
+      <circle cx="15" cy="30" r="5" fill="#f4fff7" stroke="#0f4c2c" stroke-width="2" />
+      <circle cx="33" cy="30" r="5" fill="#f4fff7" stroke="#0f4c2c" stroke-width="2" />
+      <path d="M22 8c1.5-1.8 3.7-3 6.2-3" stroke="#2fa658" stroke-width="2" />
+      <path d="M18 8c-2-1.5-4.3-2.4-6.8-2.4" stroke="#2fa658" stroke-width="2" />
+    </g>
+    <path d="M15 46c10-6 22-9 34-8" stroke="url(#leafStroke)" stroke-width="3.2" stroke-linecap="round" />
+  </g>
+  <g font-family="'Poppins', 'Segoe UI', Arial, sans-serif" font-weight="600" letter-spacing="0.8">
+    <text x="96" y="42" font-size="28" fill="#0f3d21">Eco</text>
+    <text x="154" y="42" font-size="28" fill="#34a853">Ride</text>
+  </g>
+  <path d="M104 54c12 4 28 4 40-4" fill="none" stroke="url(#leafStroke)" stroke-linecap="round" stroke-width="3" />
+</svg>
