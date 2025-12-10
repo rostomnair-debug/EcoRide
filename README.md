@@ -1,5 +1,7 @@
 # EcoRide
 
+[📖 Manuel utilisateur](USER_MANUAL.md)
+
 Plateforme de covoiturage orientée écologie (Symfony/PHP, Twig, Doctrine).
 
 ## Prérequis
