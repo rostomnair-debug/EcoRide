@@ -650,7 +650,8 @@ class CovoiturageController extends AbstractController
         string $slug,
         Request $request,
         CovoiturageRepository $covoiturageRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        AvisRepository $avisRepository
     ): Response {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
