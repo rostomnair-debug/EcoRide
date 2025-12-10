@@ -8,6 +8,7 @@ use App\Entity\Voiture;
 use App\Entity\Utilisateur;
 use App\Repository\AvisRepository;
 use App\Repository\CovoiturageRepository;
+use App\Security\Voter\CovoiturageVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -778,9 +779,11 @@ class CovoiturageController extends AbstractController
             ->getQuery()
             ->getOneOrNullResult();
 
-        if (!$trajet || $trajet->getVoiture()->getProprietaire()->getId() !== $user->getId()) {
-            throw $this->createAccessDeniedException();
+        if (!$trajet) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(CovoiturageVoter::MANAGE, $trajet);
 
         $trajet->setStatut('en cours');
         $entityManager->flush();
@@ -809,9 +812,11 @@ class CovoiturageController extends AbstractController
             ->getQuery()
             ->getOneOrNullResult();
 
-        if (!$trajet || $trajet->getVoiture()->getProprietaire()->getId() !== $user->getId()) {
-            throw $this->createAccessDeniedException();
+        if (!$trajet) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(CovoiturageVoter::MANAGE, $trajet);
 
         $trajet->setStatut('terminé');
         $entityManager->flush();
@@ -863,9 +868,11 @@ class CovoiturageController extends AbstractController
             ->getQuery()
             ->getOneOrNullResult();
 
-        if (!$trajet || $trajet->getVoiture()->getProprietaire()->getId() !== $user->getId()) {
-            throw $this->createAccessDeniedException();
+        if (!$trajet) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(CovoiturageVoter::MANAGE, $trajet);
 
         if ($trajet->getStatut() === 'terminé') {
             $this->addFlash('error', 'Trajet déjà terminé, impossible de l\'annuler.');

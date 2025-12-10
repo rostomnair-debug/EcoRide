@@ -6,6 +6,7 @@ use App\Repository\AvisRepository;
 use App\Repository\CovoiturageRepository;
 use App\Repository\SupportMessageRepository;
 use App\Repository\UtilisateurRepository;
+use App\Security\Voter\AvisVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,49 +27,63 @@ class EmployeeController extends AbstractController
     #[Route('/avis/{id}/approve', name: 'legacy_avis_approve', methods: ['POST'])]
     public function approveAvis(int $id, AvisRepository $avisRepository, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
         $avis = $avisRepository->find($id);
-        if ($avis) {
-            $avis->setStatut('valide');
-            $entityManager->flush();
-            if ($avis->getRatedUser()) {
-                $avg = $avisRepository->averageForUser($avis->getRatedUser());
-                $avis->getRatedUser()->setNoteMoyenne($avg);
-                $entityManager->flush();
-            }
-            $this->addFlash('success', 'Avis validé.');
+        if (!$avis) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(AvisVoter::MODERATE, $avis);
+
+        $avis->setStatut('valide');
+        $entityManager->flush();
+        if ($avis->getRatedUser()) {
+            $avg = $avisRepository->averageForUser($avis->getRatedUser());
+            $avis->getRatedUser()->setNoteMoyenne($avg);
+            $entityManager->flush();
+        }
+        $this->addFlash('success', 'Avis validé.');
+
         return $this->redirectToRoute('legacy_employee_space');
     }
 
     #[Route('/avis/{id}/reject', name: 'legacy_avis_reject', methods: ['POST'])]
     public function rejectAvis(int $id, AvisRepository $avisRepository, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
         $avis = $avisRepository->find($id);
-        if ($avis) {
-            $avis->setStatut('refuse');
-            $entityManager->flush();
-            if ($avis->getRatedUser()) {
-                $avg = $avisRepository->averageForUser($avis->getRatedUser());
-                $avis->getRatedUser()->setNoteMoyenne($avg);
-                $entityManager->flush();
-            }
-            $this->addFlash('success', 'Avis refusé.');
+        if (!$avis) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(AvisVoter::MODERATE, $avis);
+
+        $avis->setStatut('refuse');
+        $entityManager->flush();
+        if ($avis->getRatedUser()) {
+            $avg = $avisRepository->averageForUser($avis->getRatedUser());
+            $avis->getRatedUser()->setNoteMoyenne($avg);
+            $entityManager->flush();
+        }
+        $this->addFlash('success', 'Avis refusé.');
+
         return $this->redirectToRoute('legacy_employee_space');
     }
 
     #[Route('/signalement/avis/{id}/resolve', name: 'legacy_signal_avis_resolve', methods: ['POST'])]
     public function resolveSignalAvis(int $id, Request $request, AvisRepository $avisRepository, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_EMPLOYE');
         $avis = $avisRepository->find($id);
-        if ($avis && $this->isCsrfTokenValid('resolve_avis_' . $id, (string) $request->request->get('_csrf_token'))) {
+        if (!$avis) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->denyAccessUnlessGranted(AvisVoter::MODERATE, $avis);
+
+        if ($this->isCsrfTokenValid('resolve_avis_' . $id, (string) $request->request->get('_csrf_token'))) {
             $avis->setSignale(false);
             $entityManager->flush();
             $this->addFlash('success', 'Signalement d\'avis traité.');
         }
+
         return $this->redirectToRoute('legacy_employee_space');
     }
 

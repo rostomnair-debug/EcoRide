@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Security\Voter\UtilisateurVoter;
 
 class AdminController extends AbstractController
 {
@@ -23,26 +24,34 @@ class AdminController extends AbstractController
     #[Route('/admin/user/{id}/toggle-suspend', name: 'legacy_admin_toggle_suspend', methods: ['POST'])]
     public function toggleSuspendUser(int $id, UtilisateurRepository $utilisateurRepository, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $target = $utilisateurRepository->find($id);
-        if ($target) {
-            $target->setSuspended(!$target->isSuspended());
-            $entityManager->flush();
-            $this->addFlash('success', 'Statut de suspension mis à jour.');
+        if (!$target) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(UtilisateurVoter::SUSPEND, $target);
+
+        $target->setSuspended(!$target->isSuspended());
+        $entityManager->flush();
+        $this->addFlash('success', 'Statut de suspension mis à jour.');
+
         return $this->redirectToRoute('legacy_admin_dashboard');
     }
 
     #[Route('/admin/user/{id}/promote-employe', name: 'legacy_admin_promote_employe', methods: ['POST'])]
     public function promoteEmploye(int $id, UtilisateurRepository $utilisateurRepository, EntityManagerInterface $entityManager): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $target = $utilisateurRepository->find($id);
-        if ($target) {
-            $target->setRole('employe');
-            $entityManager->flush();
-            $this->addFlash('success', 'Utilisateur promu employé.');
+        if (!$target) {
+            throw $this->createNotFoundException();
         }
+
+        $this->denyAccessUnlessGranted(UtilisateurVoter::PROMOTE, $target);
+
+        $target->setRole('employe');
+        $entityManager->flush();
+        $this->addFlash('success', 'Utilisateur promu employé.');
+
         return $this->redirectToRoute('legacy_admin_dashboard');
     }
 
