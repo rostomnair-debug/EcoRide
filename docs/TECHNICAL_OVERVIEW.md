@@ -46,6 +46,11 @@
 - Dates affichées au format FR (`d/m/Y`, `H:i`), fuseau Paris à maintenir.
 - Messages d’erreur login non indicatifs.
 
+## Sécurité / droits (Voters)
+- `CovoiturageVoter::MANAGE` : autorise la gestion d’un trajet uniquement à son conducteur (propriétaire de la voiture liée) ou à un admin ; utilisé avant les éditions/suppressions dans `CovoiturageController`.
+- `AvisVoter::MODERATE` : autorise la validation/refus des avis et le traitement des signalements aux rôles `ROLE_ADMIN` et `ROLE_EMPLOYE` ; utilisé dans `EmployeeController`.
+- `UtilisateurVoter::SUSPEND` / `PROMOTE` : réservent suspension/promotion d’un compte aux admins ; utilisés dans `AdminController`.
+
 ## Déploiement (détail)
 1. Configurer variables d’environnement (DATABASE_URL, MAILER_DSN, APP_ENV=prod, APP_SECRET).
 2. Lancer migrations : `php bin/console doctrine:migrations:migrate -n`.

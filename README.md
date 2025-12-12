@@ -51,6 +51,11 @@ symfony serve -d   # ou php -S localhost:8000 -t public
 - ContactController : formulaire contact/support (Mailpit).
 - UserController : profil public conducteur (note moyenne, avis reçus).
 
+## Sécurité / voters
+- `CovoiturageVoter::MANAGE` : seul le conducteur (ou un admin) peut modifier/annuler ses trajets.
+- `AvisVoter::MODERATE` : modération des avis/signalements réservée aux rôles admin et employé.
+- `UtilisateurVoter::SUSPEND` / `PROMOTE` : suspension/promotion de comptes réservées aux admins.
+
 ## Tests rapides
 - Vérifier les pages `/`, `/covoiturages`, `/mon-espace`, `/admin-dashboard` (ROLE_ADMIN), `/espace-employe` (ROLE_EMPLOYE).
 - Réservation : modal de confirmation + mail, décrément/crédit OK, annulation par passager (commission non remboursée).
