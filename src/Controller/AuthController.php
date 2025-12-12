@@ -19,6 +19,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class AuthController extends AbstractController
 {
+    public const CGU_VERSION = 'v1';
+
     #[Route('/login', name: 'legacy_login', methods: ['GET', 'POST'])]
     public function register(
         Request $request,
@@ -90,7 +92,9 @@ class AuthController extends AbstractController
                 ->setPassword($passwordHasher->hashPassword($utilisateur, $password))
                 ->setSlug($slug)
                 ->setVerifie(false)
-                ->setVerificationToken(bin2hex(random_bytes(32)));
+                ->setVerificationToken(bin2hex(random_bytes(32)))
+                ->setCguAcceptedAt(new \DateTime())
+                ->setCguVersion(self::CGU_VERSION);
 
             $entityManager->persist($utilisateur);
             $entityManager->flush();

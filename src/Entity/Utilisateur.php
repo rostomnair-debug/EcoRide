@@ -89,6 +89,12 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinTable(name: 'covoiturage_participant')]
     private Collection $covoiturages;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $cguAcceptedAt = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $cguVersion = null;
+
     public function __construct()
     {
         $this->avisDeposes = new ArrayCollection();
@@ -231,6 +237,30 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getCguAcceptedAt(): ?\DateTimeInterface
+    {
+        return $this->cguAcceptedAt;
+    }
+
+    public function setCguAcceptedAt(?\DateTimeInterface $cguAcceptedAt): static
+    {
+        $this->cguAcceptedAt = $cguAcceptedAt;
+
+        return $this;
+    }
+
+    public function getCguVersion(): ?string
+    {
+        return $this->cguVersion;
+    }
+
+    public function setCguVersion(?string $cguVersion): static
+    {
+        $this->cguVersion = $cguVersion;
 
         return $this;
     }
