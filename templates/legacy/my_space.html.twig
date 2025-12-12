@@ -32,6 +32,14 @@
     <div class="row justify-content-center">
         <div class="col-12 col-lg-10">
             <div class="surface-card p-4 p-md-5">
+                {% if user.voitures is empty %}
+                    <div class="alert alert-info d-flex align-items-center gap-2 mb-4" role="alert">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>
+                            Vous êtes passager par défaut. Ajoutez un véhicule dans l’onglet <strong>Véhicules</strong> pour activer le rôle de chauffeur et publier vos trajets.
+                        </div>
+                    </div>
+                {% endif %}
                 {% set activeTab = activeTab is defined ? activeTab : 'infos' %}
                 <ul class="nav nav-tabs" id="mySpaceTabs" role="tablist" data-active-tab="{{ activeTab }}">
                     <li class="nav-item" role="presentation">
