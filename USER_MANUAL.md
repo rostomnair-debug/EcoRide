@@ -1,8 +1,8 @@
 # Manuel d’utilisation (résumé)
 
 ## Rôles et comptes de test
-- Admin : email ross@mail.com / Ross123! (ROLE_ADMIN)
-- Employé : email sergioramos@mail.com / Ramos123! (ROLE_EMPLOYE)
+- Admin : email: ross@mail.com / mdp: Ross123! (ROLE_ADMIN)
+- Employé : email: sergioramos@mail.com / mdp: Ramos123! (ROLE_EMPLOYE)
 - Utilisateur : créer un compte via « Créer un compte » (20 crédits offerts)
 
 ## Parcours utilisateur
