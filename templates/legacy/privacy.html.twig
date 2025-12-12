@@ -1,0 +1,37 @@
+{% extends 'layout/legacy.html.twig' %}
+{% block legacy_title %}EcoRide - Politique de confidentialité{% endblock %}
+
+{% block legacy_body %}
+<section class="container my-5">
+    <div class="page-hero mb-4">
+        <h1 class="h3 fw-bold mb-1">Politique de confidentialité</h1>
+        <p class="mb-0">Comment nous collectons, utilisons et protégeons vos données.</p>
+    </div>
+    <div class="surface-card p-4 p-md-5">
+        <h2 class="h5 fw-semibold mb-3">Collecte</h2>
+        <ul class="mb-4">
+            <li>Données de compte : nom, prénom, email, pseudo, mot de passe chiffré.</li>
+            <li>Données d’usage : trajets publiés, réservations, avis déposés/reçus.</li>
+            <li>Logs techniques minimaux pour sécuriser la plateforme.</li>
+        </ul>
+        <h2 class="h5 fw-semibold mb-3">Usage</h2>
+        <ul class="mb-4">
+            <li>Créer et gérer votre compte EcoRide.</li>
+            <li>Assurer la réservation et la mise en relation passager/conducteur.</li>
+            <li>Envoyer les notifications (emails de confirmation, réinitialisation, alertes).</li>
+        </ul>
+        <h2 class="h5 fw-semibold mb-3">Durées et partage</h2>
+        <ul class="mb-4">
+            <li>Les données sont conservées tant que votre compte est actif ou conformément aux obligations légales.</li>
+            <li>Pas de vente de données ; partage limité aux prestataires techniques nécessaires (hébergement, mail).</li>
+            <li>En cas de demande légale, des informations peuvent être transmises aux autorités compétentes.</li>
+        </ul>
+        <h2 class="h5 fw-semibold mb-3">Vos droits</h2>
+        <ul class="mb-4">
+            <li>Droit d’accès, de rectification, d’opposition, d’effacement dans les limites légales.</li>
+            <li>Pour exercer ces droits, contactez le support via la page <a href="{{ path('legacy_contact') }}" class="link-success fw-semibold">Contact</a>.</li>
+        </ul>
+        <p class="mb-0">Pour les règles d’usage de la plateforme, consultez les <a href="{{ path('legacy_cgu') }}" class="link-success fw-semibold">CGU</a>.</p>
+    </div>
+</section>
+{% endblock %}

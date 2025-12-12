@@ -140,6 +140,12 @@ class AuthController extends AbstractController
         return $this->render('legacy/cgu.html.twig');
     }
 
+    #[Route('/confidentialite', name: 'legacy_privacy', methods: ['GET'])]
+    public function privacy(): Response
+    {
+        return $this->render('legacy/privacy.html.twig');
+    }
+
     #[Route('/verify-email', name: 'legacy_verify_email')]
     public function verifyEmail(Request $request, EntityManagerInterface $entityManager, UtilisateurRepository $utilisateurRepository): Response
     {
