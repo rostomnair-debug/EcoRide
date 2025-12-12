@@ -50,7 +50,7 @@
                         <div class="mb-3">
                             <label for="ValidatePasswordInput" class="form-label">Confirmez le mot de passe</label>
                             <input type="password" id="ValidatePasswordInput" name="confirm_password" class="form-control" required>
-                            <div class="invalid-feedback">
+                        <div class="invalid-feedback">
                                 Les mots de passe doivent être identiques.
                             </div>
                             <div class="valid-feedback">
@@ -58,18 +58,15 @@
                             </div>
                         </div>
 
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="role" id="passager" checked>
-                            <label class="form-check-label" for="passager">Passager</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="role" id="chauffeur">
-                            <label class="form-check-label" for="chauffeur">Chauffeur</label>
-                        </div>
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="role" id="chauffeurPassager">
-                            <label class="form-check-label" for="chauffeurPassager">Chauffeur et Passager</label>
+                            <input class="form-check-input" type="checkbox" value="1" id="acceptCgu" name="accept_cgu" required>
+                            <label class="form-check-label" for="acceptCgu">
+                                J'accepte les <a href="{{ path('legacy_cgu') }}" class="link-success fw-semibold">conditions générales d'utilisation</a>
+                            </label>
                         </div>
+                        <p class="text-muted small mb-4">
+                            Vous êtes automatiquement inscrit en tant que passager. Pour devenir chauffeur et proposer un trajet, ajoutez un véhicule depuis votre profil après inscription.
+                        </p>
                     </fieldset>
                     <div class="d-grid gap-2">
                         <button class="btn btn-success" id="add" type="submit">S'inscrire</button>

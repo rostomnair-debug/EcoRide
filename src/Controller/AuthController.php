@@ -35,6 +35,7 @@ class AuthController extends AbstractController
             $email = strtolower(trim((string) $request->request->get('email', '')));
             $password = (string) $request->request->get('password', '');
             $confirm = (string) $request->request->get('confirm_password', '');
+            $acceptedCgu = $request->request->getBoolean('accept_cgu');
 
             if ($nom === '' || $prenom === '' || $pseudo === '' || $email === '' || $password === '') {
                 $this->addFlash('error', 'Merci de remplir tous les champs obligatoires.');
@@ -63,6 +64,11 @@ class AuthController extends AbstractController
 
             if ($utilisateurRepository->findOneBy(['email' => $email])) {
                 $this->addFlash('error', 'Un compte existe déjà avec cet email.');
+                return $this->redirectToRoute('legacy_login');
+            }
+
+            if (!$acceptedCgu) {
+                $this->addFlash('error', "Merci d'accepter les conditions generales d'utilisation.");
                 return $this->redirectToRoute('legacy_login');
             }
 
@@ -126,6 +132,12 @@ class AuthController extends AbstractController
     public function logout(): void
     {
         throw new \LogicException('This method is intercepted by the firewall logout.');
+    }
+
+    #[Route('/cgu', name: 'legacy_cgu', methods: ['GET'])]
+    public function cgu(): Response
+    {
+        return $this->render('legacy/cgu.html.twig');
     }
 
     #[Route('/verify-email', name: 'legacy_verify_email')]
